@@ -7,40 +7,38 @@ import com.urbanfix.enums.Role;
 import com.urbanfix.exception.ResourceAlreadyExistsException;
 import com.urbanfix.repository.UserRepository;
 import com.urbanfix.service.AuthService;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-@Service // Marks this class as a Spring Service Bean
+@Service
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    // Constructor Injection (Recommended by Spring)
-    public AuthServiceImpl(UserRepository userRepository) {
+    public AuthServiceImpl(UserRepository userRepository,
+                           PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public String register(RegisterRequest request) {
 
-        // Check if email already exists
-        if(userRepository.existsByEmail(request.getEmail()))
-            {
-                throw new ResourceAlreadyExistsException("Email already registered");
-            }
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new ResourceAlreadyExistsException("Email already registered");
+        }
 
-        // Create a new User entity
         User user = new User();
 
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
 
-        // Password will be encrypted later using BCrypt
-        user.setPassword(request.getPassword());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        // Every new user is a normal USER
         user.setRole(Role.USER);
 
-        // Save user to database
         userRepository.save(user);
 
         return "User Registered Successfully";
@@ -48,8 +46,6 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String login(LoginRequest request) {
-
-        // JWT logic will come later
         return "Login API Working";
     }
 }
