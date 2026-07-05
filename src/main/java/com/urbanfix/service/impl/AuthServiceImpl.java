@@ -2,6 +2,8 @@ package com.urbanfix.service.impl;
 
 import com.urbanfix.dto.LoginRequest;
 import com.urbanfix.dto.RegisterRequest;
+import com.urbanfix.entity.User;
+import com.urbanfix.enums.Role;
 import com.urbanfix.repository.UserRepository;
 import com.urbanfix.service.AuthService;
 import org.springframework.stereotype.Service;
@@ -19,8 +21,27 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public String register(RegisterRequest request) {
 
-        // Business logic will be added in the next step
-        return "Register API Working";
+        // Check if email already exists
+        if (userRepository.existsByEmail(request.getEmail())) {
+            return "Email already registered";
+        }
+
+        // Create a new User entity
+        User user = new User();
+
+        user.setFullName(request.getFullName());
+        user.setEmail(request.getEmail());
+
+        // Password will be encrypted later using BCrypt
+        user.setPassword(request.getPassword());
+
+        // Every new user is a normal USER
+        user.setRole(Role.USER);
+
+        // Save user to database
+        userRepository.save(user);
+
+        return "User Registered Successfully";
     }
 
     @Override
