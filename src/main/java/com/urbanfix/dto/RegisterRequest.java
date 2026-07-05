@@ -2,33 +2,18 @@ package com.urbanfix.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
 
+@Data
 public class RegisterRequest {
 
-    @NotBlank
+    @NotBlank(message = "Full name is required")
     private String fullName;
 
-    @Email
-    @NotBlank
+    @Email(message = "Invalid email format")
+    @NotBlank(message = "Email is required")
     private String email;
 
-    @NotBlank
+    @NotBlank(message = "Password is required")
     private String password;
-
-    public String getFullName() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getFullName'");
-    }
-
-    public String getEmail() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getEmail'");
-    }
-
-    public String getPassword() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getPassword'");
-    }
-
-    // Getters and Setters
 }

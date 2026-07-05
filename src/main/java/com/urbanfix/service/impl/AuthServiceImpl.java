@@ -4,6 +4,7 @@ import com.urbanfix.dto.LoginRequest;
 import com.urbanfix.dto.RegisterRequest;
 import com.urbanfix.entity.User;
 import com.urbanfix.enums.Role;
+import com.urbanfix.exception.ResourceAlreadyExistsException;
 import com.urbanfix.repository.UserRepository;
 import com.urbanfix.service.AuthService;
 import org.springframework.stereotype.Service;
@@ -22,9 +23,10 @@ public class AuthServiceImpl implements AuthService {
     public String register(RegisterRequest request) {
 
         // Check if email already exists
-        if (userRepository.existsByEmail(request.getEmail())) {
-            return "Email already registered";
-        }
+        if(userRepository.existsByEmail(request.getEmail()))
+            {
+                throw new ResourceAlreadyExistsException("Email already registered");
+            }
 
         // Create a new User entity
         User user = new User();
