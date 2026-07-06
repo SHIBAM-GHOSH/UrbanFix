@@ -1,6 +1,7 @@
 package com.urbanfix.service;
 
 import com.urbanfix.dto.LoginRequest;
+import com.urbanfix.dto.LoginResponse;
 import com.urbanfix.dto.RegisterRequest;
 
 public interface AuthService {
@@ -9,5 +10,5 @@ public interface AuthService {
     String register(RegisterRequest request);
 
     // Authenticate an existing user
-    String login(LoginRequest request);
+    LoginResponse login(LoginRequest request);
 }

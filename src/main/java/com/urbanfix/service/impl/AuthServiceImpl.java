@@ -1,6 +1,7 @@
 package com.urbanfix.service.impl;
 
 import com.urbanfix.dto.LoginRequest;
+import com.urbanfix.dto.LoginResponse;
 import com.urbanfix.dto.RegisterRequest;
 import com.urbanfix.entity.User;
 import com.urbanfix.enums.Role;
@@ -8,20 +9,28 @@ import com.urbanfix.exception.ResourceAlreadyExistsException;
 import com.urbanfix.repository.UserRepository;
 import com.urbanfix.service.AuthService;
 
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AuthServiceImpl implements AuthService {
 
+
+    
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
 
-    public AuthServiceImpl(UserRepository userRepository,
-                           PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
+    public AuthServiceImpl(UserRepository userRepository,PasswordEncoder passwordEncoder,
+                            AuthenticationManager authenticationManager) 
+        {
+
+            this.userRepository = userRepository;
+            this.passwordEncoder = passwordEncoder;
+            this.authenticationManager = authenticationManager;
+        }
 
     @Override
     public String register(RegisterRequest request) {
@@ -45,7 +54,18 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String login(LoginRequest request) {
-        return "Login API Working";
+    public LoginResponse login(LoginRequest request) {
+
+        // Ask Spring Security to authenticate the user
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getEmail(),
+                        request.getPassword()
+                )
+        );
+
+        // JWT token will be added here tomorrow
+        return new LoginResponse("Login Successful");
     }
 }
+

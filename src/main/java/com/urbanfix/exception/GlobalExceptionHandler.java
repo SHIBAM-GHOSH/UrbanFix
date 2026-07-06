@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
+import org.springframework.security.authentication.BadCredentialsException;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,21 +31,35 @@ public class GlobalExceptionHandler {
     // Handles validation errors (@Valid)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationExceptions(
-            MethodArgumentNotValidException ex) {
+                MethodArgumentNotValidException ex) 
+        {
 
-        Map<String, String> errors = new HashMap<>();
+            Map<String, String> errors = new HashMap<>();
 
-        ex.getBindingResult().getFieldErrors().forEach(error -> {
-            errors.put(error.getField(), error.getDefaultMessage());
-        });
+            ex.getBindingResult().getFieldErrors().forEach(error -> {
+                errors.put(error.getField(), error.getDefaultMessage());
+            });
 
-        Map<String, Object> response = new HashMap<>();
+            Map<String, Object> response = new HashMap<>();
 
-        response.put("status", 400);
-        response.put("message", "Validation Failed");
-        response.put("errors", errors);
+            response.put("status", 400);
+            response.put("message", "Validation Failed");
+            response.put("errors", errors);
 
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-    }
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+
+    // Handles invalid login credentials
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<Map<String, String>> handleBadCredentials(
+            BadCredentialsException ex)
+            {
+
+                Map<String, String> response = Map.of(
+                        "error", "Invalid email or password"
+                );
+
+                return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+            }
 
 }
