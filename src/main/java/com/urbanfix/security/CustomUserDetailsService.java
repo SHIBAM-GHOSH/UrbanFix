@@ -32,10 +32,14 @@ public class CustomUserDetailsService implements UserDetailsService {
                 );
 
         // Convert our User entity into Spring Security's UserDetails
-        return org.springframework.security.core.userdetails.User
-                .withUsername(user.getEmail())
-                .password(user.getPassword())
-                .roles(user.getRole().name())
-                .build();
+        UserDetails security_UserObj = org.springframework.security.core.userdetails.User
+                                        .withUsername(user.getEmail())
+                                        .password(user.getPassword())
+                                        .roles(user.getRole().name())
+                                        .build();
+
+        return security_UserObj
+        ;
+        
     }
 }
