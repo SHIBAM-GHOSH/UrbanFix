@@ -13,9 +13,21 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import lombok.RequiredArgsConstructor;
 
 @Configuration
-public class SecurityConfig {
+@RequiredArgsConstructor
+public class SecurityConfig 
+{   
+    private final JwtAuthenticationFilter jwtAuthenticationFilter1;
+
+//     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter1) {
+
+//     this.jwtAuthenticationFilter1 = jwtAuthenticationFilter1;
+// }
 
     // Password Encoder Bean
     @Bean
@@ -33,26 +45,33 @@ public class SecurityConfig {
     // Configure Spring Security
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http)
-            throws Exception {
+            throws Exception 
+            {
 
-        http
-            // Disable CSRF for REST APIs
-            .csrf(csrf -> csrf.disable())
+                    http
+                    // Disable CSRF because we are building a REST API
+                    .csrf(csrf -> csrf.disable())
+                    // Do not create HTTP sessions (JWT is stateless)
+                    .sessionManagement(session ->
+                            session.sessionCreationPolicy(
+                                    SessionCreationPolicy.STATELESS
+                            )
+                    )
+                    // Configure endpoint authorization
+                    .authorizeHttpRequests(auth -> auth
+                            // Authentication APIs are public
+                            .requestMatchers("/api/auth/**").permitAll()
+                            // All other APIs require authentication
+                            .anyRequest().authenticated()
+                    )
 
-            // Authorization Rules
-            .authorizeHttpRequests(auth -> auth
+                    // Execute our JWT filter before Spring's authentication filter
+                    .addFilterBefore(
+                            jwtAuthenticationFilter1,
+                            UsernamePasswordAuthenticationFilter.class
+                    );
 
-                    // Allow anyone to access authentication APIs
-                    .requestMatchers("/api/auth/**").permitAll()
-
-                    // Every other API requires authentication
-                    .anyRequest().authenticated()
-            )
-
-            // Basic Authentication (temporary)
-            .httpBasic(Customizer.withDefaults());
-
-        return http.build();
-    }
+                return http.build();
+            }
 
 }

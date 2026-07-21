@@ -1,4 +1,4 @@
-package com.urbanfix.service.impl;
+package com.urbanfix.service.Implementation;
 
 import com.urbanfix.dto.LoginRequest;
 import com.urbanfix.dto.LoginResponse;
@@ -7,13 +7,16 @@ import com.urbanfix.entity.User;
 import com.urbanfix.enums.Role;
 import com.urbanfix.exception.ResourceAlreadyExistsException;
 import com.urbanfix.repository.UserRepository;
-import com.urbanfix.service.AuthService;
+import com.urbanfix.security.CustomUserDetailsService;
+import com.urbanfix.security.JwtService;
+import com.urbanfix.service.InterFaces.AuthService;
 
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -24,6 +27,8 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
+    private final CustomUserDetailsService customUserDetailsService1;
 
     // public AuthServiceImpl(UserRepository userRepository,PasswordEncoder passwordEncoder,
     //                         AuthenticationManager authenticationManager) 
@@ -56,18 +61,26 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public LoginResponse login(LoginRequest request) {
+    public LoginResponse login(LoginRequest request) 
+        {
+            // Authenticate the user
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
 
-        // Ask Spring Security to authenticate the user
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
+            // Load authenticated user's details
+            UserDetails userDetails = customUserDetailsService1.loadUserByUsername(request.getEmail());
 
-        // JWT token will be added here tomorrow
-        return new LoginResponse("Login Successful");
-    }
+            // Generate JWT
+            String jwt = jwtService.generateToken(userDetails);
+
+            // Return JWT to client
+            return new LoginResponse(jwt);
+
+            
+        }
 }
 

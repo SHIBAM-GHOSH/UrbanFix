@@ -1,4 +1,4 @@
-package com.urbanfix.service;
+package com.urbanfix.service.InterFaces;
 
 import com.urbanfix.dto.LoginRequest;
 import com.urbanfix.dto.LoginResponse;

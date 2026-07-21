@@ -3,7 +3,8 @@ package com.urbanfix.controller;
 import com.urbanfix.dto.LoginRequest;
 import com.urbanfix.dto.LoginResponse;
 import com.urbanfix.dto.RegisterRequest;
-import com.urbanfix.service.AuthService;
+import com.urbanfix.service.InterFaces.AuthService;
+
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
