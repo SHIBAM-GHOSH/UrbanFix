@@ -2,17 +2,26 @@ package com.urbanfix.service.Implementation;
 
 import com.urbanfix.dto.ComplaintResponse;
 import com.urbanfix.dto.CreateComplaintRequest;
+import com.urbanfix.entity.Complaint;
 import com.urbanfix.entity.User;
+import com.urbanfix.enums.ComplaintStatus;
 import com.urbanfix.repository.ComplaintRepository;
 import com.urbanfix.repository.UserRepository;
 import com.urbanfix.service.InterFaces.ComplaintService;
 
 import lombok.RequiredArgsConstructor;
 
+import java.time.LocalDateTime;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import com.urbanfix.exception.ResourceNotFoundException;
+
+import com.urbanfix.entity.Complaint;
+import com.urbanfix.enums.*;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -31,8 +40,7 @@ public class ComplaintServiceImpl
     // }
 
     @Override
-    public ComplaintResponse createComplaint(
-            CreateComplaintRequest request) {
+    public ComplaintResponse createComplaint(CreateComplaintRequest request) {
 
         // Get the currently authenticated user
         Authentication authentication =
@@ -50,7 +58,71 @@ public class ComplaintServiceImpl
                         new ResourceNotFoundException(
                                 "User not found with email: " + email
                         ));
+        // Create a new Complaint entity
+       
+         // Convert receibed DTO to Entity
+        Complaint complaint = mapToEntity(request, currentUser);
 
-        return null;
+        // Save complaint
+        Complaint savedComplaint = complaintRepository1.save(complaint);
+
+    // Convert Entity to Response DTO
+        return mapToResponse(savedComplaint);
+        
+       
     }
+
+
+    /**
+ * Converts CreateComplaintRequest DTO into Complaint Entity
+ */
+        private Complaint mapToEntity( CreateComplaintRequest request,User currentUser) 
+                {
+
+                        Complaint complaint = new Complaint();
+
+                        complaint.setTitle(request.getTitle());
+                        complaint.setDescription(request.getDescription());
+                        complaint.setCategory(request.getCategory());
+                        complaint.setLocation(request.getLocation());
+                        complaint.setLatitude(request.getLatitude());
+                        complaint.setLongitude(request.getLongitude());
+                        complaint.setImageUrl(request.getImageUrl());
+
+                        // Default values
+                        complaint.setStatus(ComplaintStatus.PENDING);
+                        complaint.setCreatedAt(LocalDateTime.now());
+                        complaint.setUpdatedAt(LocalDateTime.now());
+
+                        // Associate complaint with logged-in user
+                        complaint.setUser(currentUser);
+
+                        return complaint;
+                }
+        /**
+ * Converts Complaint Entity into ComplaintResponse DTO
+ */
+        private ComplaintResponse mapToResponse(Complaint complaint) 
+                {
+
+                        ComplaintResponse response = new ComplaintResponse();
+
+                        response.setId(complaint.getId());
+                        response.setTitle(complaint.getTitle());
+                        response.setDescription(complaint.getDescription());
+                        response.setCategory(complaint.getCategory());
+                        response.setLocation(complaint.getLocation());
+                        response.setLatitude(complaint.getLatitude());
+                        response.setLongitude(complaint.getLongitude());
+                        response.setImageUrl(complaint.getImageUrl());
+                        response.setStatus(complaint.getStatus());
+                        response.setCreatedAt(complaint.getCreatedAt());
+                        response.setUpdatedAt(complaint.getUpdatedAt());
+
+                        response.setUserName(
+                                complaint.getUser().getFullName()
+                        );
+
+                        return response;
+                }
 }

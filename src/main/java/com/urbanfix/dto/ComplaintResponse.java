@@ -2,8 +2,11 @@ package com.urbanfix.dto;
 
 import com.urbanfix.enums.ComplaintStatus;
 
+import lombok.Data;
+
 import java.time.LocalDateTime;
 
+@Data
 public class ComplaintResponse {
 
     private Long id;

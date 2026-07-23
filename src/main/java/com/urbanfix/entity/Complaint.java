@@ -1,6 +1,7 @@
 package com.urbanfix.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 
@@ -8,6 +9,7 @@ import com.urbanfix.enums.ComplaintStatus;
 
 @Entity
 @Table(name = "complaints")
+@Data
 public class Complaint {
 
     // Primary Key
