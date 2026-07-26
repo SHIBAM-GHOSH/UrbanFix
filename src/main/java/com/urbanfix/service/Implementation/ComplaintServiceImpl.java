@@ -1,21 +1,34 @@
 package com.urbanfix.service.Implementation;
 
+import com.urbanfix.Mapper.ComplaintMapper;
 import com.urbanfix.dto.ComplaintResponse;
 import com.urbanfix.dto.CreateComplaintRequest;
+import com.urbanfix.dto.UpdateComplaintRequest;
 import com.urbanfix.entity.Complaint;
 import com.urbanfix.entity.User;
 import com.urbanfix.enums.ComplaintStatus;
 import com.urbanfix.repository.ComplaintRepository;
 import com.urbanfix.repository.UserRepository;
 import com.urbanfix.service.InterFaces.ComplaintService;
+import com.urbanfix.service.InterFaces.FileStorageService;
+import com.urbanfix.specification.ComplaintSpecification;
 
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
-
+import java.util.ArrayList;
+import java.util.List;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.urbanfix.exception.InvalidOperationException;
 import com.urbanfix.exception.ResourceNotFoundException;
 
 import com.urbanfix.entity.Complaint;
@@ -25,12 +38,28 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
-public class ComplaintServiceImpl
-        implements ComplaintService {
+//Spring Boot know 
+//Whenever someone asks for a ComplaintService, I'll provide a ComplaintServiceImpl
+public class ComplaintServiceImpl implements ComplaintService 
+{       
 
-    private final ComplaintRepository complaintRepository1;
-    private final UserRepository userRepository1;
-
+        //Dependecny modeule Injection
+        private final ComplaintRepository complaintRepository1;
+        private final UserRepository userRepository1;
+        private final ComplaintMapper complaintMapper1;
+        private final FileStorageService fileStorageService1;
+        
+        //fucn to Extract curretn user fom context and verify it from DataBase
+        private User getCurrentUser() 
+                {
+    
+                        Authentication authentication =SecurityContextHolder.getContext().getAuthentication();
+    
+                        String email = authentication.getName();
+                        return userRepository1.findByEmail(email)
+                                                .orElseThrow(() ->
+                                                new ResourceNotFoundException("User not found"));
+                }
     // public ComplaintServiceImpl(
     //         ComplaintRepository complaintRepository1,
     //         UserRepository userRepository1) {
@@ -40,46 +69,98 @@ public class ComplaintServiceImpl
     // }
 
     @Override
-    public ComplaintResponse createComplaint(CreateComplaintRequest request) {
-
-        // Get the currently authenticated user
-        Authentication authentication =
-                SecurityContextHolder
-                        .getContext()
-                        .getAuthentication();
-
-        // Extract the logged-in user's email
-        String email = authentication.getName();
-
-        // Fetch the user from the database
-        User currentUser = userRepository1
-                .findByEmail(email)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "User not found with email: " + email
-                        ));
-        // Create a new Complaint entity
-       
-         // Convert receibed DTO to Entity
-        Complaint complaint = mapToEntity(request, currentUser);
-
-        // Save complaint
-        Complaint savedComplaint = complaintRepository1.save(complaint);
-
-    // Convert Entity to Response DTO
-        return mapToResponse(savedComplaint);
-        
-       
-    }
-
-
-    /**
- * Converts CreateComplaintRequest DTO into Complaint Entity
- */
-        private Complaint mapToEntity( CreateComplaintRequest request,User currentUser) 
+        public ComplaintResponse createComplaint(CreateComplaintRequest request,MultipartFile image)
                 {
+                        // Get the currently authenticated user
+                        Authentication authentication = SecurityContextHolder
+                                                                .getContext()
+                                                                .getAuthentication();
+                        // Extract the logged-in user's email
+                        String email = authentication.getName();
+                        // Fetch the user from the database
+                        User currentUser = userRepository1
+                                .findByEmail(email)
+                                .orElseThrow(() ->
+                                        new ResourceNotFoundException(
+                                                "User not found with email: " + email
+                                        ));
+                        // Upload the image if provided
+                        String imageUrl = null;
+                        if (image != null && !image.isEmpty()) {
+                        imageUrl = fileStorageService1.uploadFile(image);
+                        
+                                }
+                        
+                        // Convert receibed DTO to Entity
+                        Complaint complaint = complaintMapper1.mapToEntity(request, currentUser);
+                        // Associate the uploaded image with the complaint
+                        complaint.setImageUrl(imageUrl);
+                        // Save complaint
+                        Complaint savedComplaint = complaintRepository1.save(complaint);
 
-                        Complaint complaint = new Complaint();
+                        // Convert Entity to Response DTO
+                        return complaintMapper1.mapToResponse(savedComplaint);     
+                }
+        
+        @Override
+        public Page<ComplaintResponse> getAllComplaints(int page, int size, String sortBy,String direction ,ComplaintStatus status,String keyword)         
+                {       // Fetch all complaints from the database
+                        Sort sort = direction.equalsIgnoreCase("desc")
+                                        ? Sort.by(sortBy).descending()
+                                        : Sort.by(sortBy).ascending();
+                        Pageable pageable = PageRequest.of(page,size,sort);
+                                ///////
+                                // Build a dynamic query using reusable specifications
+                        // Start with an empty specification
+                        Specification<Complaint> specification = Specification.unrestricted();
+                        // Add status filter if provided
+                        specification = specification.and(ComplaintSpecification.hasStatus(status));
+                        // Add keyword filter if provided
+                        specification = specification.and(ComplaintSpecification.containsKeyword(keyword));
+                        // Execute the query with pagination and sorting
+                        Page<Complaint> complaints =complaintRepository1.findAll(specification,pageable);
+
+                        return complaints.map(complaintMapper1::mapToResponse);
+                                ////////////////                               
+                }
+        @Override
+        public ComplaintResponse getComplaintById(Long complaintId) 
+                {
+                        Complaint complaint = complaintRepository1
+                                                .findById(complaintId)
+                                                .orElseThrow(() ->
+                                                        new ResourceNotFoundException(
+                                                                "Complaint not found with id: " + complaintId));
+                        
+                        ComplaintResponse response = complaintMapper1.mapToResponse(complaint);
+                        return response;
+                }
+        
+        @Override
+        public ComplaintResponse updateComplaint(Long complaintId, UpdateComplaintRequest request) 
+                {
+                        Complaint complaint = complaintRepository1
+                                                .findById(complaintId)
+                                                .orElseThrow(() ->
+                                                        new ResourceNotFoundException(
+                                                                "Complaint not found with id: " + complaintId
+                                                        ));
+                        
+                        //Get the logged-in user
+                        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+                        String email = authentication.getName();
+                        User currentUser = userRepository1.findByEmail(email)
+                                                        .orElseThrow(() -> 
+                                                        new ResourceNotFoundException("User not found"));
+                        
+                        //Only the creator of the complaint should be able to edit it.
+                        if (!complaint.getUser().getId().equals(currentUser.getId()))
+                        {
+                                throw new InvalidOperationException(
+                                        "You are not allowed to update this complaint."
+                                );
+                        }
 
                         complaint.setTitle(request.getTitle());
                         complaint.setDescription(request.getDescription());
@@ -89,40 +170,76 @@ public class ComplaintServiceImpl
                         complaint.setLongitude(request.getLongitude());
                         complaint.setImageUrl(request.getImageUrl());
 
-                        // Default values
-                        complaint.setStatus(ComplaintStatus.PENDING);
-                        complaint.setCreatedAt(LocalDateTime.now());
-                        complaint.setUpdatedAt(LocalDateTime.now());
-
-                        // Associate complaint with logged-in user
-                        complaint.setUser(currentUser);
-
-                        return complaint;
+                        Complaint updatedComplaint = complaintRepository1.save(complaint);
+                        return complaintMapper1.mapToResponse(updatedComplaint);
+                        
                 }
-        /**
- * Converts Complaint Entity into ComplaintResponse DTO
- */
-        private ComplaintResponse mapToResponse(Complaint complaint) 
+        @Override
+        public
+        void deleteComplaint(Long complaintId)
+                {       
+                        //get the complaint block from DB
+                        Complaint complaint = complaintRepository1
+                                                .findById(complaintId)
+                                                .orElseThrow(() ->
+                                                        new ResourceNotFoundException(
+                                                                "Complaint not found with id: " + complaintId
+                                                        ));
+
+
+                        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                        String email = authentication.getName();
+                        User currentUser = userRepository1.findByEmail(email)
+                                                        .orElseThrow(() -> 
+                                                        new ResourceNotFoundException("User not found"));
+                        
+                        //Check that the complaint belongs to the current user
+                        if (!complaint.getUser().getId().equals(currentUser.getId()))
+                        {
+                                throw new InvalidOperationException(
+                                                "You are not allowed to delete this complaint."
+                                );
+                        }
+
+                        complaintRepository1.delete(complaint);
+
+                }
+        @Override
+        public List<ComplaintResponse> getMyComplaints() 
                 {
+                        User currentUser = getCurrentUser();
+                        List<Complaint> complaints = complaintRepository1.findByUser(currentUser);
+                        List<ComplaintResponse> responses = new ArrayList<>();
 
-                        ComplaintResponse response = new ComplaintResponse();
-
-                        response.setId(complaint.getId());
-                        response.setTitle(complaint.getTitle());
-                        response.setDescription(complaint.getDescription());
-                        response.setCategory(complaint.getCategory());
-                        response.setLocation(complaint.getLocation());
-                        response.setLatitude(complaint.getLatitude());
-                        response.setLongitude(complaint.getLongitude());
-                        response.setImageUrl(complaint.getImageUrl());
-                        response.setStatus(complaint.getStatus());
-                        response.setCreatedAt(complaint.getCreatedAt());
-                        response.setUpdatedAt(complaint.getUpdatedAt());
-
-                        response.setUserName(
-                                complaint.getUser().getFullName()
-                        );
-
-                        return response;
+                        for (Complaint complaint : complaints) {
+                                responses.add(
+                                        complaintMapper1.mapToResponse(complaint));
+                        }
+                        return responses;
                 }
+        
+        @Override
+        public Page<ComplaintResponse> searchComplaints(String keyword,int page,int size) 
+                {
+                        // Create pagination request
+                        Pageable pageable = PageRequest.of(page, size);
+                        // Search complaints by title or description
+                        Page<Complaint> complaints =
+                                        complaintRepository1
+                                                .findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(
+                                                                                                        keyword,
+                                                                                                        keyword,
+                                                                                                        pageable);
+                        // Convert entities into API response DTOs
+                        return complaints.map(complaintMapper1::mapToResponse);
+                }
+
+       
+        
+      
+
 }
+
+
+
+        

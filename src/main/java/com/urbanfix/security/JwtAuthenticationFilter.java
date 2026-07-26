@@ -81,7 +81,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 // Continue processing the request
                 filterChain.doFilter(request, response);
-                // Continue to the next step (temporary)
-                filterChain.doFilter(request, response);
+                
             }
 }
