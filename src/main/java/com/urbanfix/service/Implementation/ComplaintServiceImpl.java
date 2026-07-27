@@ -1,6 +1,7 @@
 package com.urbanfix.service.Implementation;
 
 import com.urbanfix.Mapper.ComplaintMapper;
+import com.urbanfix.dto.CategoryAnalyticsResponse;
 import com.urbanfix.dto.ComplaintResponse;
 import com.urbanfix.dto.CreateComplaintRequest;
 import com.urbanfix.dto.DashboardStatsResponse;
@@ -316,6 +317,13 @@ public class ComplaintServiceImpl implements ComplaintService
                                         inProgressComplaints,
                                         resolvedComplaints);
                 }
+        @Override
+        public List<CategoryAnalyticsResponse> getCategoryAnalytics() 
+        {
+
+                // Retrieve complaint count grouped by category
+                return complaintRepository1.getCategoryAnalytics();
+        }
 
 }
 

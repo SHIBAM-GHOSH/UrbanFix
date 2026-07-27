@@ -1,5 +1,6 @@
 package com.urbanfix.controller;
 
+import com.urbanfix.dto.CategoryAnalyticsResponse;
 import com.urbanfix.dto.ComplaintResponse;
 import com.urbanfix.dto.DashboardStatsResponse;
 import com.urbanfix.enums.ComplaintStatus;
@@ -7,6 +8,8 @@ import com.urbanfix.service.InterFaces.ComplaintService;
 
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
 
 //import com.urbanfix.entity.ComplaintCategory;
 //import com.urbanfix.entity.ComplaintStatus;
@@ -77,4 +80,18 @@ public class AdminController {
                     complaintService1.getDashboardStatistics();
             return ResponseEntity.ok(response);
     }
+        /**
+     * Retrieves complaint count grouped by category.
+     * Accessible only by administrators.
+     */
+    @GetMapping("/dashboard/categories")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<CategoryAnalyticsResponse>> getCategoryAnalytics() 
+        {
+
+            List<CategoryAnalyticsResponse> response =
+                    complaintService1.getCategoryAnalytics();
+
+            return ResponseEntity.ok(response);
+        }
 }

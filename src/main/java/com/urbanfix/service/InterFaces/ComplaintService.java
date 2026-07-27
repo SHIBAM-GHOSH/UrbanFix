@@ -1,5 +1,7 @@
 package com.urbanfix.service.InterFaces;
 
+import com.urbanfix.dto.CategoryAnalyticsResponse;
+
 //import org.hibernate.query.Page;
 
 import com.urbanfix.dto.ComplaintResponse;
@@ -45,6 +47,11 @@ public interface ComplaintService
         
         // Retrieve complaint statistics for the admin dashboard
         DashboardStatsResponse getDashboardStatistics();
+
+                /**
+         * Retrieves complaint count grouped by category.
+         */
+        List<CategoryAnalyticsResponse> getCategoryAnalytics();
 
     
     }
