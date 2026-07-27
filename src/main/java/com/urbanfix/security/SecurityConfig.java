@@ -11,7 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 
 @Configuration
 @RequiredArgsConstructor
+@EnableMethodSecurity
 public class SecurityConfig 
 {   
     private final JwtAuthenticationFilter jwtAuthenticationFilter1;
@@ -61,6 +62,8 @@ public class SecurityConfig
                     .authorizeHttpRequests(auth -> auth
                             // Authentication APIs are public
                             .requestMatchers("/api/auth/**").permitAll()
+                              // Uploaded images are public
+                            .requestMatchers("/uploads/**").permitAll()
                             // All other APIs require authentication
                             .anyRequest().authenticated()
                     )

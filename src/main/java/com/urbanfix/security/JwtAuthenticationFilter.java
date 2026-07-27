@@ -12,6 +12,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import org.springframework.security.core.Authentication;
+
 import java.io.IOException;
 
 @Component
@@ -73,9 +75,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                 );
 
                                 // Store the authenticated user in the SecurityContext
-                                SecurityContextHolder
-                                        .getContext()
-                                        .setAuthentication(authentication);
+                                SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                                //////////                               
+                                        System.out.println("Authorities: " +
+                                                SecurityContextHolder.getContext()
+                                                        .getAuthentication()
+                                                        .getAuthorities());
+
+                                        System.out.println("Username: " +
+                                                SecurityContextHolder.getContext()
+                                                        .getAuthentication()
+                                                        .getName());
                             }
                     }
 

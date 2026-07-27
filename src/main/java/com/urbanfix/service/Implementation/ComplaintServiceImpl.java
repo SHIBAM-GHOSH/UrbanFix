@@ -3,7 +3,9 @@ package com.urbanfix.service.Implementation;
 import com.urbanfix.Mapper.ComplaintMapper;
 import com.urbanfix.dto.ComplaintResponse;
 import com.urbanfix.dto.CreateComplaintRequest;
+import com.urbanfix.dto.DashboardStatsResponse;
 import com.urbanfix.dto.UpdateComplaintRequest;
+import com.urbanfix.dto.UpdateComplaintStatusRequest;
 import com.urbanfix.entity.Complaint;
 import com.urbanfix.entity.User;
 import com.urbanfix.enums.ComplaintStatus;
@@ -23,6 +25,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -233,10 +236,86 @@ public class ComplaintServiceImpl implements ComplaintService
                         // Convert entities into API response DTOs
                         return complaints.map(complaintMapper1::mapToResponse);
                 }
-
-       
         
-      
+        @Override
+        @PreAuthorize("hasRole('ADMIN')")
+        public ComplaintResponse updateComplaintStatus(Long complaintId,UpdateComplaintStatusRequest request) 
+                {       
+                        // // Get the currently authenticated user
+                        // Authentication authentication = SecurityContextHolder
+                        //                                 .getContext()
+                        //                                 .getAuthentication();
+
+                        // // Allow only ADMIN users to update complaint status
+                        // if (authentication.getAuthorities().stream()
+                        //         .noneMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"))) 
+                        //         {
+
+                        //         throw new InvalidOperationException("Only admins can update complaint status.");
+                        //         }
+
+                        // Fetch the complaint from the database
+                        Complaint complaint = complaintRepository1
+                                .findById(complaintId)
+                                .orElseThrow(() ->
+                                        new ResourceNotFoundException(
+                                                "Complaint not found with id: " + complaintId
+                                        ));
+
+                        // Update the complaint status
+                        complaint.setStatus(request.getStatus());
+                        // Persist the updated complaint
+                        Complaint updatedComplaint = complaintRepository1.save(complaint);
+                        // Convert entity to response DTO
+                        return complaintMapper1.mapToResponse(updatedComplaint);
+                }
+
+        @Override
+        public Page<ComplaintResponse> getAllComplaintsForAdmin(
+                ComplaintStatus status,String category,
+                int page,int size,
+                String sortBy,String sortDirection) 
+                {
+                        // Create sorting configuration
+                        Sort sort = sortDirection.equalsIgnoreCase("asc")
+                                ? Sort.by(sortBy).ascending()
+                                : Sort.by(sortBy).descending();
+
+                        // Create pageable request
+                        Pageable pageable = PageRequest.of(page, size, sort);
+                        // Build dynamic filters
+                        Specification<Complaint> specification =Specification
+                                                .where(ComplaintSpecification.hasStatus(status))
+                                                .and(ComplaintSpecification.hasCategory(category));
+
+                        // Fetch filtered complaints
+                        Page<Complaint> complaintPage = complaintRepository1.findAll(specification, pageable);
+                        // Convert entities to DTOs
+                        return complaintPage.map(complaintMapper1::mapToResponse);
+                }
+        @Override
+        public DashboardStatsResponse getDashboardStatistics() 
+                {
+                        // Count all complaints
+                        long totalComplaints = complaintRepository1.count();
+
+                        // Count complaints by status
+                        long pendingComplaints =
+                                complaintRepository1.countByStatus(ComplaintStatus.PENDING);
+
+                        long inProgressComplaints =
+                                complaintRepository1.countByStatus(ComplaintStatus.IN_PROGRESS);
+
+                        long resolvedComplaints =
+                                complaintRepository1.countByStatus(ComplaintStatus.RESOLVED);
+
+                        // Build dashboard response
+                        return new DashboardStatsResponse(
+                                        totalComplaints,
+                                        pendingComplaints,
+                                        inProgressComplaints,
+                                        resolvedComplaints);
+                }
 
 }
 

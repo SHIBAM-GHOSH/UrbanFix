@@ -30,6 +30,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                                 "User not found with email: " + email
                         )
                 );
+        System.out.println("Role from DB: " + user.getRole());
 
         // Convert our User entity into Spring Security's UserDetails
         UserDetails security_UserObj = org.springframework.security.core.userdetails.User

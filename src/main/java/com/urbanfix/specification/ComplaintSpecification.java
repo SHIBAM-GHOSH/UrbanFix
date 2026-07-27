@@ -3,6 +3,9 @@ package com.urbanfix.specification;
 import com.urbanfix.entity.Complaint;
 import com.urbanfix.enums.ComplaintStatus;
 
+import java.util.ArrayList;
+import java.util.List;
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 
 /**
@@ -44,6 +47,23 @@ public class ComplaintSpecification {
                                                             "%" + keyword.toLowerCase() + "%")
                                             );
             }
+
+        // Creates a filter for complaint category.
+        // Returns unrestricted when no category is provided.
+        public static Specification<Complaint> hasCategory(String category) 
+            {
+
+                if (category == null || category.isBlank()) {
+                    return Specification.unrestricted();
+                }
+
+                return (root, query, criteriaBuilder) ->
+                        criteriaBuilder.equal(root.get("category"), category);
+            }
+        
+        // Build dynamic filters for complaint search
+      
+            
 
                                                 
 }

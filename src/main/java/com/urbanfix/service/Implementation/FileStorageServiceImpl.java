@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.io.IOException;
 
+import com.urbanfix.exception.InvalidOperationException;
 import com.urbanfix.service.InterFaces.FileStorageService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,9 +19,20 @@ public class FileStorageServiceImpl implements FileStorageService {
 
 @Override
 public String uploadFile(MultipartFile file) 
-        {
+        {   
+            // Reject empty uploads
+            if (file.isEmpty()) 
+                {
+                    throw new InvalidOperationException("Image file cannot be empty.");
+                }
             // Extract the original file name
             String originalFileName = file.getOriginalFilename();
+
+            // Validate that the uploaded file is an image
+            String contentType = file.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                throw new InvalidOperationException("Only image files are allowed.");
+            }
             // Generate a unique file name
             String uniqueFileName = UUID.randomUUID() + "_" + originalFileName;
             // Define the upload directory

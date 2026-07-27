@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import org.springframework.security.authentication.BadCredentialsException;
@@ -61,5 +62,29 @@ public class GlobalExceptionHandler {
 
                 return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
             }
+
+    // Handles invalid business operations
+    @ExceptionHandler(InvalidOperationException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidOperation(InvalidOperationException ex) 
+            {
+                Map<String, String> response = Map.of("error", ex.getMessage());
+                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleResourceNotFound(ResourceNotFoundException ex) 
+    {
+            Map<String, String> response = Map.of("error", ex.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    }
+
+    // Handles files exceeding the maximum upload size
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, String>> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException ex) 
+        {
+
+            Map<String, String> response = Map.of("error", "File size exceeds the maximum limit of 5 MB.");
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
 
 }

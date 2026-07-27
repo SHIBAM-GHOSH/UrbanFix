@@ -22,4 +22,9 @@ public interface ComplaintRepository extends JpaRepository<Complaint, Long>,
         String title,
         String description,
         Pageable pageable);
+    
+        /**
+     * Counts complaints with the given status.
+     */
+    long countByStatus(ComplaintStatus status);
 }

@@ -6,9 +6,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -21,7 +23,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.urbanfix.dto.ComplaintResponse;
 import com.urbanfix.dto.CreateComplaintRequest; //dATA TRANSFER OBJECT   
+import com.urbanfix.dto.DashboardStatsResponse;
 import com.urbanfix.dto.UpdateComplaintRequest;
+import com.urbanfix.dto.UpdateComplaintStatusRequest;
 import com.urbanfix.enums.ComplaintStatus;
 import com.urbanfix.service.InterFaces.ComplaintService;
 
@@ -113,5 +117,32 @@ public class ComplaintController
                                                         .searchComplaints(keyword, page, size);
                 return ResponseEntity.ok(responses);
                 }
+
+        // Update the status of a complaint
+        @PatchMapping("/{id}/status")
+        //@PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<ComplaintResponse> updateComplaintStatus(@PathVariable Long id,
+                                                                        @Valid
+                                                                        @RequestBody
+                                                                        UpdateComplaintStatusRequest request) 
+        {
+            ComplaintResponse response = complaintService1.updateComplaintStatus(id, request);
+            return ResponseEntity.ok(response);
+        }
+                /**
+         * Retrieves dashboard statistics.
+         * Accessible only by administrators.
+         */
+        @GetMapping("/dashboard")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<DashboardStatsResponse> getDashboardStatistics()
+            {
+
+                DashboardStatsResponse response =
+                        complaintService1.getDashboardStatistics();
+                return ResponseEntity.ok(response);
+            }
+
+
 
     }
