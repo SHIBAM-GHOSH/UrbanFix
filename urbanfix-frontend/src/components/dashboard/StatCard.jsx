@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Box, Card, CardContent, Stack, Typography } from '@mui/material';
 
 function StatCard({ color, icon, label, subtitle, value }) {
@@ -56,5 +57,6 @@ function StatCard({ color, icon, label, subtitle, value }) {
   );
 }
 
-export default StatCard;
+export default memo(StatCard);
+
 

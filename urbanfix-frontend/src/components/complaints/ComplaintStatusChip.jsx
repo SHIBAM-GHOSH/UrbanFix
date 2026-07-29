@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Chip } from '@mui/material';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
@@ -26,4 +27,5 @@ function ComplaintStatusChip({ status }) {
   );
 }
 
-export default ComplaintStatusChip;
+export default memo(ComplaintStatusChip);
+

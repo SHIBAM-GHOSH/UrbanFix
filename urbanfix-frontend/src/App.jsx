@@ -1,47 +1,54 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
-import LoginPage from './pages/auth/LoginPage';
-import RegisterPage from './pages/auth/RegisterPage';
-import UserDashboardPage from './pages/dashboard/UserDashboardPage';
-import ComplaintListPage from './pages/complaints/ComplaintListPage';
-import CreateComplaintPage from './pages/complaints/CreateComplaintPage';
-import ComplaintDetailPage from './pages/complaints/ComplaintDetailPage';
-import EditComplaintPage from './pages/complaints/EditComplaintPage';
-import ProfilePage from './pages/profile/ProfilePage';
-import AdminDashboardPage from './pages/admin/AdminDashboardPage';
-import AdminComplaintManagementPage from './pages/admin/AdminComplaintManagementPage';
-import AdminAnalyticsPage from './pages/admin/AdminAnalyticsPage';
-import NotFoundPage from './pages/shared/NotFoundPage';
 import AppShell from './components/layout/AppShell';
 import ProtectedRoute from './components/routing/ProtectedRoute';
 import AdminRoute from './components/routing/AdminRoute';
+import LoadingState from './components/shared/LoadingState';
+
+// Lazy-loaded pages for optimal bundle chunking
+const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
+const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'));
+const UserDashboardPage = lazy(() => import('./pages/dashboard/UserDashboardPage'));
+const ComplaintListPage = lazy(() => import('./pages/complaints/ComplaintListPage'));
+const CreateComplaintPage = lazy(() => import('./pages/complaints/CreateComplaintPage'));
+const ComplaintDetailPage = lazy(() => import('./pages/complaints/ComplaintDetailPage'));
+const EditComplaintPage = lazy(() => import('./pages/complaints/EditComplaintPage'));
+const ProfilePage = lazy(() => import('./pages/profile/ProfilePage'));
+const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'));
+const AdminComplaintManagementPage = lazy(() => import('./pages/admin/AdminComplaintManagementPage'));
+const AdminAnalyticsPage = lazy(() => import('./pages/admin/AdminAnalyticsPage'));
+const NotFoundPage = lazy(() => import('./pages/shared/NotFoundPage'));
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route element={<Navigate replace to="/login" />} path="/" />
-        <Route element={<LoginPage />} path="/login" />
-        <Route element={<RegisterPage />} path="/register" />
-        <Route element={<ProtectedRoute />}>
-          <Route element={<AppShell />}>
-            <Route element={<UserDashboardPage />} path="/dashboard" />
-            <Route element={<ComplaintListPage />} path="/complaints" />
-            <Route element={<CreateComplaintPage />} path="/complaints/new" />
-            <Route element={<ComplaintDetailPage />} path="/complaints/:complaintId" />
-            <Route element={<EditComplaintPage />} path="/complaints/:complaintId/edit" />
-            <Route element={<ProfilePage />} path="/profile" />
-            <Route element={<AdminRoute />}>
-              <Route element={<AdminDashboardPage />} path="/admin" />
-              <Route element={<AdminComplaintManagementPage />} path="/admin/complaints" />
-              <Route element={<AdminAnalyticsPage />} path="/admin/analytics" />
+      <Suspense fallback={<LoadingState message="Loading UrbanFix..." minHeight="70vh" />}>
+        <Routes>
+          <Route element={<Navigate replace to="/login" />} path="/" />
+          <Route element={<LoginPage />} path="/login" />
+          <Route element={<RegisterPage />} path="/register" />
+          <Route element={<ProtectedRoute />}>
+            <Route element={<AppShell />}>
+              <Route element={<UserDashboardPage />} path="/dashboard" />
+              <Route element={<ComplaintListPage />} path="/complaints" />
+              <Route element={<CreateComplaintPage />} path="/complaints/new" />
+              <Route element={<ComplaintDetailPage />} path="/complaints/:complaintId" />
+              <Route element={<EditComplaintPage />} path="/complaints/:complaintId/edit" />
+              <Route element={<ProfilePage />} path="/profile" />
+              <Route element={<AdminRoute />}>
+                <Route element={<AdminDashboardPage />} path="/admin" />
+                <Route element={<AdminComplaintManagementPage />} path="/admin/complaints" />
+                <Route element={<AdminAnalyticsPage />} path="/admin/analytics" />
+              </Route>
             </Route>
           </Route>
-        </Route>
-        <Route element={<NotFoundPage />} path="*" />
-      </Routes>
+          <Route element={<NotFoundPage />} path="*" />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }
 
 export default App;
+
 

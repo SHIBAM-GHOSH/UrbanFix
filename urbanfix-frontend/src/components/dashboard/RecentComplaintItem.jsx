@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { Box, Chip, IconButton, Paper, Stack, Typography } from '@mui/material';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
@@ -102,4 +103,5 @@ function RecentComplaintItem({ complaint }) {
   );
 }
 
-export default RecentComplaintItem;
+export default memo(RecentComplaintItem);
+
