@@ -1,6 +1,7 @@
 package com.urbanfix.repository;
 
 import com.urbanfix.dto.CategoryAnalyticsResponse;
+import com.urbanfix.dto.MonthlyComplaintAnalyticsResponse;
 import com.urbanfix.entity.Complaint;
 import com.urbanfix.entity.User;
 import com.urbanfix.enums.ComplaintStatus;
@@ -51,4 +52,16 @@ public interface ComplaintRepository extends JpaRepository<Complaint, Long>,
 
     //syntax -@Query(...)
     //List<CategoryAnalyticsResponse> getCategoryAnalytics();
+
+    @Query("""
+                SELECT new com.urbanfix.dto.MonthlyComplaintAnalyticsResponse(
+                        YEAR(c.createdAt),
+                        MONTH(c.createdAt),
+                        COUNT(c)
+                )
+                FROM Complaint c
+                GROUP BY YEAR(c.createdAt), MONTH(c.createdAt)
+                ORDER BY YEAR(c.createdAt), MONTH(c.createdAt)
+                """)
+    List<MonthlyComplaintAnalyticsResponse> getMonthlyComplaintAnalytics();
 }

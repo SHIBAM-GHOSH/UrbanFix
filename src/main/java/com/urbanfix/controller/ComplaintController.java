@@ -29,9 +29,11 @@ import com.urbanfix.dto.UpdateComplaintStatusRequest;
 import com.urbanfix.enums.ComplaintStatus;
 import com.urbanfix.service.InterFaces.ComplaintService;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/api/complaints")
 @RequiredArgsConstructor

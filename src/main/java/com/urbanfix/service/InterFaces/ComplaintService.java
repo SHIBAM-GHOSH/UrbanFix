@@ -7,6 +7,7 @@ import com.urbanfix.dto.CategoryAnalyticsResponse;
 import com.urbanfix.dto.ComplaintResponse;
 import com.urbanfix.dto.CreateComplaintRequest;
 import com.urbanfix.dto.DashboardStatsResponse;
+import com.urbanfix.dto.MonthlyComplaintAnalyticsResponse;
 import com.urbanfix.dto.UpdateComplaintRequest;
 import com.urbanfix.dto.UpdateComplaintStatusRequest;
 import com.urbanfix.enums.ComplaintStatus;
@@ -52,6 +53,6 @@ public interface ComplaintService
          * Retrieves complaint count grouped by category.
          */
         List<CategoryAnalyticsResponse> getCategoryAnalytics();
-
+        List<MonthlyComplaintAnalyticsResponse> getMonthlyComplaintAnalytics();
     
     }

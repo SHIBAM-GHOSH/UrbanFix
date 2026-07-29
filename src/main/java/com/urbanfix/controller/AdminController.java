@@ -3,6 +3,7 @@ package com.urbanfix.controller;
 import com.urbanfix.dto.CategoryAnalyticsResponse;
 import com.urbanfix.dto.ComplaintResponse;
 import com.urbanfix.dto.DashboardStatsResponse;
+import com.urbanfix.dto.MonthlyComplaintAnalyticsResponse;
 import com.urbanfix.enums.ComplaintStatus;
 import com.urbanfix.service.InterFaces.ComplaintService;
 
@@ -93,5 +94,18 @@ public class AdminController {
                     complaintService1.getCategoryAnalytics();
 
             return ResponseEntity.ok(response);
+        }
+
+                /**
+         * Retrieves complaint count grouped by year and month.
+         * Accessible only by administrators.
+         */
+        @GetMapping("/dashboard/monthly")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<List<MonthlyComplaintAnalyticsResponse>> getMonthlyComplaintAnalytics() 
+        {
+
+                List<MonthlyComplaintAnalyticsResponse> response =complaintService1.getMonthlyComplaintAnalytics();
+                return ResponseEntity.ok(response);
         }
 }

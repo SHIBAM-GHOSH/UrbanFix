@@ -59,14 +59,16 @@ public class SecurityConfig
                             )
                     )
                     // Configure endpoint authorization
-                    .authorizeHttpRequests(auth -> auth
-                            // Authentication APIs are public
-                            .requestMatchers("/api/auth/**").permitAll()
-                              // Uploaded images are public
-                            .requestMatchers("/uploads/**").permitAll()
-                            // All other APIs require authentication
-                            .anyRequest().authenticated()
-                    )
+                   .authorizeHttpRequests(auth -> auth.requestMatchers(
+                                                                        "/api/auth/**",
+                                                                        "/v3/api-docs/**",
+                                                                        "/swagger-ui/**",
+                                                                        "/swagger-ui.html"
+                                                                ).permitAll()
+
+                                        .anyRequest().authenticated()
+                                )
+                    
 
                     // Execute our JWT filter before Spring's authentication filter
                     .addFilterBefore(
