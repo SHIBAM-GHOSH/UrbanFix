@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
   AppBar,
@@ -15,10 +16,34 @@ import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded';
 import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
 import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
+import AdminPanelSettingsRoundedIcon from '@mui/icons-material/AdminPanelSettingsRounded';
 import { clearToken } from '../../utils/auth';
+import { getCurrentUser } from '../../services/userService';
 
 function AppHeader() {
   const navigate = useNavigate();
+  const [profile, setProfile] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadProfile() {
+      try {
+        const data = await getCurrentUser();
+        if (isMounted) {
+          setProfile(data);
+        }
+      } catch {
+        // The global Axios 401 handler owns expired-session redirects.
+      }
+    }
+
+    loadProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   function handleLogout() {
     clearToken();
@@ -47,6 +72,13 @@ function AppHeader() {
                 My complaints
               </Box>
             </Button>
+            {profile?.role === 'ADMIN' && (
+              <Button component={RouterLink} startIcon={<AdminPanelSettingsRoundedIcon />} to="/admin">
+                <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>
+                  Admin
+                </Box>
+              </Button>
+            )}
             <Button component={RouterLink} startIcon={<AddCircleOutlineRoundedIcon />} to="/complaints/new" variant="contained">
               <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
                 Report issue
