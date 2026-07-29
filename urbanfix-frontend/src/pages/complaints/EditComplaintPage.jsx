@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Alert, Box, CircularProgress, Container, Paper, Stack, Typography } from '@mui/material';
+import { Alert, Container, Paper, Stack, Typography } from '@mui/material';
 import ComplaintForm from '../../components/complaints/ComplaintForm';
 import { getComplaintById, updateComplaint } from '../../services/complaintService';
+import LoadingState from '../../components/shared/LoadingState';
 
 function EditComplaintPage() {
   const { complaintId } = useParams();
@@ -39,7 +40,7 @@ function EditComplaintPage() {
   }
 
   if (!complaint && !error) {
-    return <Box sx={{ display: 'grid', minHeight: '50vh', placeItems: 'center' }}><CircularProgress /></Box>;
+    return <LoadingState message="Loading complaint..." />;
   }
 
   return (

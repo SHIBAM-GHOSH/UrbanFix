@@ -1,20 +1,19 @@
 import { useEffect, useState } from 'react';
 import {
   Alert,
-  Box,
-  Button,
   Container,
   Grid,
   MenuItem,
-  Pagination,
-  Paper,
   Skeleton,
   Stack,
   TextField,
-  Typography,
 } from '@mui/material';
-import FilterAltRoundedIcon from '@mui/icons-material/FilterAltRounded';
 import ComplaintCard from '../../components/complaints/ComplaintCard';
+import EmptyState from '../../components/shared/EmptyState';
+import FilterPanel from '../../components/shared/FilterPanel';
+import PageHeader from '../../components/shared/PageHeader';
+import PaginationControls from '../../components/shared/PaginationControls';
+import SearchToolbar from '../../components/shared/SearchToolbar';
 import { getMyComplaints } from '../../services/complaintService';
 
 const initialFilters = {
@@ -72,20 +71,14 @@ function ComplaintListPage() {
   return (
     <Container maxWidth="xl" sx={{ py: { xs: 3, md: 5 } }}>
       <Stack spacing={3}>
-        <Box>
-          <Typography color="primary" fontWeight={800} variant="overline">
-            Your reports
-          </Typography>
-          <Typography component="h1" variant="h1">
-            My complaints
-          </Typography>
-          <Typography color="text.secondary" sx={{ mt: 1 }}>
-            Review and track every civic issue you have reported.
-          </Typography>
-        </Box>
+        <PageHeader
+          eyebrow="Your reports"
+          subtitle="Review and track every civic issue you have reported."
+          title="My complaints"
+        />
 
-        <Paper component="form" onSubmit={handleFilterSubmit} sx={{ p: 2 }}>
-          <Grid alignItems="center" container spacing={1.5}>
+        <FilterPanel onSubmit={handleFilterSubmit}>
+          <SearchToolbar onReset={clearFilters}>
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <TextField fullWidth label="Search reports" name="keyword" onChange={handleFilterChange} placeholder="Title or description" value={filters.keyword} />
             </Grid>
@@ -101,16 +94,8 @@ function ComplaintListPage() {
                 <MenuItem value="REJECTED">Rejected</MenuItem>
               </TextField>
             </Grid>
-            <Grid size={{ xs: 12, md: 2 }}>
-              <Stack direction="row" spacing={1}>
-                <Button fullWidth startIcon={<FilterAltRoundedIcon />} type="submit" variant="contained">
-                  Apply
-                </Button>
-                <Button onClick={clearFilters}>Clear</Button>
-              </Stack>
-            </Grid>
-          </Grid>
-        </Paper>
+          </SearchToolbar>
+        </FilterPanel>
 
         {error && <Alert severity="error">{error}</Alert>}
 
@@ -128,23 +113,18 @@ function ComplaintListPage() {
         </Grid>
 
         {complaintPage?.empty && (
-          <Paper sx={{ p: 5, textAlign: 'center' }}>
-            <Typography variant="h3">No matching reports found</Typography>
-            <Typography color="text.secondary" sx={{ mt: 1 }}>
-              Adjust your filters or create a new report when you spot an issue.
-            </Typography>
-          </Paper>
+          <EmptyState
+            description="Adjust your filters or create a new report when you spot an issue."
+            title="No matching reports found"
+          />
         )}
 
-        {complaintPage && complaintPage.totalPages > 1 && (
-          <Stack alignItems="center">
-            <Pagination
-              color="primary"
-              count={complaintPage.totalPages}
-              onChange={(_, selectedPage) => setPage(selectedPage - 1)}
-              page={complaintPage.number + 1}
-            />
-          </Stack>
+        {complaintPage && (
+          <PaginationControls
+            currentPage={complaintPage.number}
+            totalPages={complaintPage.totalPages}
+            onChange={setPage}
+          />
         )}
       </Stack>
     </Container>

@@ -4,7 +4,6 @@ import {
   Avatar,
   Box,
   Chip,
-  CircularProgress,
   Container,
   Divider,
   Grid,
@@ -16,6 +15,8 @@ import BadgeRoundedIcon from '@mui/icons-material/BadgeRounded';
 import EmailRoundedIcon from '@mui/icons-material/EmailRounded';
 import VerifiedUserRoundedIcon from '@mui/icons-material/VerifiedUserRounded';
 import { getCurrentUser } from '../../services/userService';
+import LoadingState from '../../components/shared/LoadingState';
+import PageHeader from '../../components/shared/PageHeader';
 
 function ProfilePage() {
   const [profile, setProfile] = useState(null);
@@ -63,25 +64,14 @@ function ProfilePage() {
   }, [profile]);
 
   if (isLoading) {
-    return (
-      <Box alignItems="center" display="flex" justifyContent="center" minHeight="60vh">
-        <CircularProgress />
-      </Box>
-    );
+    return <LoadingState message="Loading profile..." minHeight="60vh" />;
   }
 
   return (
     <Box sx={{ bgcolor: 'background.default', minHeight: 'calc(100vh - 72px)', py: { xs: 4, md: 6 } }}>
       <Container maxWidth="lg">
         <Stack spacing={3}>
-          <Box>
-            <Typography fontWeight={900} variant="h4">
-              Profile
-            </Typography>
-            <Typography color="text.secondary">
-              Your UrbanFix account details and access role.
-            </Typography>
-          </Box>
+          <PageHeader subtitle="Your UrbanFix account details and access role." title="Profile" />
 
           {error && <Alert severity="error">{error}</Alert>}
 

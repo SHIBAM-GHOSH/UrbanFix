@@ -4,14 +4,10 @@ import {
   Alert,
   Box,
   Button,
-  CircularProgress,
+  Chip,
   Container,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
   Divider,
+  Grid,
   Paper,
   Stack,
   Typography,
@@ -19,36 +15,83 @@ import {
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+import MyLocationRoundedIcon from '@mui/icons-material/MyLocationRounded';
+import PersonOutlineRoundedIcon from '@mui/icons-material/PersonOutlineRounded';
+import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
+import UpdateRoundedIcon from '@mui/icons-material/UpdateRounded';
+import ImageNotSupportedRoundedIcon from '@mui/icons-material/ImageNotSupportedRounded';
 import ComplaintStatusChip from '../../components/complaints/ComplaintStatusChip';
+import AppSnackbar from '../../components/shared/AppSnackbar';
+import ConfirmDialog from '../../components/shared/ConfirmDialog';
+import LoadingState from '../../components/shared/LoadingState';
 import { deleteComplaint, getComplaintById } from '../../services/complaintService';
+
+function formatDate(value) {
+  if (!value) return 'Not available';
+  return new Date(value).toLocaleString();
+}
+
+function MetadataItem({ icon, label, value }) {
+  return (
+    <Stack direction="row" spacing={1.25}>
+      <Box color="primary.main" sx={{ display: 'grid', pt: 0.25 }}>
+        {icon}
+      </Box>
+      <Box>
+        <Typography color="text.secondary" fontWeight={800} variant="caption">
+          {label}
+        </Typography>
+        <Typography fontWeight={800}>{value || 'Not available'}</Typography>
+      </Box>
+    </Stack>
+  );
+}
 
 function ComplaintDetailPage() {
   const { complaintId } = useParams();
   const navigate = useNavigate();
   const [complaint, setComplaint] = useState(null);
   const [error, setError] = useState('');
+  const [snackbar, setSnackbar] = useState({ message: '', severity: 'success' });
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
+
     async function loadComplaint() {
+      setError('');
+
       try {
-        setComplaint(await getComplaintById(complaintId));
+        const data = await getComplaintById(complaintId);
+        if (isMounted) {
+          setComplaint(data);
+        }
       } catch (requestError) {
-        setError(requestError.response?.data?.error || 'We could not load this complaint.');
+        if (isMounted) {
+          setError(requestError.response?.data?.message || requestError.response?.data?.error || 'We could not load this complaint.');
+        }
       }
     }
 
     loadComplaint();
+
+    return () => {
+      isMounted = false;
+    };
   }, [complaintId]);
 
   async function handleDelete() {
     setIsDeleting(true);
+    setError('');
+
     try {
       await deleteComplaint(complaintId);
-      navigate('/complaints', { replace: true });
+      setSnackbar({ message: 'Complaint deleted successfully.', severity: 'success' });
+      navigate('/complaints', { replace: true, state: { message: 'Complaint deleted successfully.' } });
     } catch (requestError) {
-      setError(requestError.response?.data?.error || 'We could not delete this complaint.');
+      setError(requestError.response?.data?.message || requestError.response?.data?.error || 'We could not delete this complaint.');
+      setSnackbar({ message: 'Unable to delete complaint.', severity: 'error' });
       setIsDeleteOpen(false);
     } finally {
       setIsDeleting(false);
@@ -56,51 +99,126 @@ function ComplaintDetailPage() {
   }
 
   if (!complaint && !error) {
-    return <Box sx={{ display: 'grid', minHeight: '50vh', placeItems: 'center' }}><CircularProgress /></Box>;
+    return <LoadingState message="Loading complaint..." />;
   }
 
   if (error && !complaint) {
-    return <Container sx={{ py: 5 }}><Alert severity="error">{error}</Alert></Container>;
+    return (
+      <Container maxWidth="md" sx={{ py: 5 }}>
+        <Alert severity="error">{error}</Alert>
+      </Container>
+    );
   }
 
   return (
-    <Container maxWidth="md" sx={{ py: { xs: 3, md: 5 } }}>
+    <Container maxWidth="xl" sx={{ py: { xs: 3, md: 5 } }}>
       <Stack spacing={3}>
         {error && <Alert severity="error">{error}</Alert>}
-        <Paper sx={{ overflow: 'hidden' }}>
-          {complaint.imageUrl && <Box alt={complaint.title} component="img" src={complaint.imageUrl} sx={{ display: 'block', height: { xs: 220, sm: 340 }, objectFit: 'cover', width: '100%' }} />}
-          <Stack spacing={3} sx={{ p: { xs: 2.5, md: 4 } }}>
-            <Stack alignItems={{ sm: 'center' }} direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={2}>
+
+        <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={2}>
+          <Box>
+            <Stack alignItems="center" direction="row" flexWrap="wrap" gap={1} sx={{ mb: 1 }}>
               <ComplaintStatusChip status={complaint.status} />
-              <Typography color="text.secondary" variant="body2">
-                Reported {new Date(complaint.createdAt).toLocaleString()}
-              </Typography>
+              <Chip color="primary" label={complaint.category || 'General'} size="small" variant="outlined" />
             </Stack>
-            <Box>
-              <Typography color="primary" fontWeight={700} variant="body2">{complaint.category}</Typography>
-              <Typography component="h1" sx={{ mt: 0.5 }} variant="h1">{complaint.title}</Typography>
-            </Box>
-            <Typography color="text.secondary" sx={{ whiteSpace: 'pre-wrap' }}>{complaint.description}</Typography>
-            <Stack alignItems="center" color="text.secondary" direction="row" spacing={1}>
-              <LocationOnOutlinedIcon color="primary" />
-              <Typography>{complaint.location}</Typography>
-            </Stack>
-            <Divider />
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-              <Button component={RouterLink} startIcon={<EditOutlinedIcon />} to={`/complaints/${complaint.id}/edit`} variant="outlined">Edit complaint</Button>
-              <Button color="error" onClick={() => setIsDeleteOpen(true)} startIcon={<DeleteOutlineRoundedIcon />}>Delete complaint</Button>
-            </Stack>
+            <Typography component="h1" variant="h1">
+              {complaint.title}
+            </Typography>
+            <Typography color="text.secondary" sx={{ mt: 1 }}>
+              Complaint #{complaint.id}
+            </Typography>
+          </Box>
+
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+            <Button component={RouterLink} startIcon={<EditOutlinedIcon />} to={`/complaints/${complaint.id}/edit`} variant="outlined">
+              Edit complaint
+            </Button>
+            <Button color="error" onClick={() => setIsDeleteOpen(true)} startIcon={<DeleteOutlineRoundedIcon />} variant="outlined">
+              Delete
+            </Button>
           </Stack>
-        </Paper>
+        </Stack>
+
+        <Grid container spacing={3}>
+          <Grid item lg={7} xs={12}>
+            <Paper sx={{ border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
+              {complaint.imageUrl ? (
+                <Box
+                  alt={complaint.title}
+                  component="img"
+                  src={complaint.imageUrl}
+                  sx={{ display: 'block', height: { xs: 260, md: 520 }, objectFit: 'cover', width: '100%' }}
+                />
+              ) : (
+                <Stack alignItems="center" color="text.secondary" justifyContent="center" spacing={1.5} sx={{ height: { xs: 260, md: 520 } }}>
+                  <ImageNotSupportedRoundedIcon color="disabled" sx={{ fontSize: 56 }} />
+                  <Typography>No image was uploaded for this complaint.</Typography>
+                </Stack>
+              )}
+            </Paper>
+          </Grid>
+
+          <Grid item lg={5} xs={12}>
+            <Stack spacing={2.5}>
+              <Paper sx={{ border: '1px solid', borderColor: 'divider', p: { xs: 2.5, md: 3 } }}>
+                <Typography gutterBottom variant="h3">
+                  Description
+                </Typography>
+                <Typography color="text.secondary" sx={{ whiteSpace: 'pre-wrap' }}>
+                  {complaint.description}
+                </Typography>
+              </Paper>
+
+              <Paper sx={{ border: '1px solid', borderColor: 'divider', p: { xs: 2.5, md: 3 } }}>
+                <Typography gutterBottom variant="h3">
+                  Location
+                </Typography>
+                <Stack spacing={2}>
+                  <MetadataItem icon={<LocationOnOutlinedIcon />} label="Address or landmark" value={complaint.location} />
+                  <MetadataItem
+                    icon={<MyLocationRoundedIcon />}
+                    label="Coordinates"
+                    value={
+                      complaint.latitude && complaint.longitude
+                        ? `${complaint.latitude}, ${complaint.longitude}`
+                        : 'Not available'
+                    }
+                  />
+                </Stack>
+              </Paper>
+
+              <Paper sx={{ border: '1px solid', borderColor: 'divider', p: { xs: 2.5, md: 3 } }}>
+                <Typography gutterBottom variant="h3">
+                  Metadata
+                </Typography>
+                <Stack divider={<Divider flexItem />} spacing={2}>
+                  <MetadataItem icon={<PersonOutlineRoundedIcon />} label="Reported by" value={complaint.userName || 'Citizen'} />
+                  <MetadataItem icon={<CalendarMonthRoundedIcon />} label="Created" value={formatDate(complaint.createdAt)} />
+                  <MetadataItem icon={<UpdateRoundedIcon />} label="Last updated" value={formatDate(complaint.updatedAt)} />
+                </Stack>
+              </Paper>
+            </Stack>
+          </Grid>
+        </Grid>
       </Stack>
-      <Dialog onClose={() => setIsDeleteOpen(false)} open={isDeleteOpen}>
-        <DialogTitle>Delete this complaint?</DialogTitle>
-        <DialogContent><DialogContentText>This cannot be undone. The complaint will be permanently removed.</DialogContentText></DialogContent>
-        <DialogActions>
-          <Button onClick={() => setIsDeleteOpen(false)}>Cancel</Button>
-          <Button color="error" disabled={isDeleting} onClick={handleDelete} variant="contained">{isDeleting ? 'Deleting…' : 'Delete'}</Button>
-        </DialogActions>
-      </Dialog>
+
+      <ConfirmDialog
+        confirmColor="error"
+        confirmLabel="Delete"
+        description="This cannot be undone. The complaint will be permanently removed."
+        isConfirming={isDeleting}
+        open={isDeleteOpen}
+        title="Delete this complaint?"
+        onClose={() => setIsDeleteOpen(false)}
+        onConfirm={handleDelete}
+      />
+
+      <AppSnackbar
+        message={snackbar.message}
+        open={Boolean(snackbar.message)}
+        severity={snackbar.severity}
+        onClose={() => setSnackbar({ message: '', severity: 'success' })}
+      />
     </Container>
   );
 }

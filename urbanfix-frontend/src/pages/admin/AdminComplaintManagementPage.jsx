@@ -4,19 +4,12 @@ import {
   Box,
   Button,
   Container,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
   FormControl,
   Grid,
   InputLabel,
   MenuItem,
-  Pagination,
   Paper,
   Select,
-  Snackbar,
   Stack,
   TextField,
   Typography,
@@ -24,6 +17,9 @@ import {
 import ManageSearchRoundedIcon from '@mui/icons-material/ManageSearchRounded';
 import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import AdminComplaintTable from '../../components/admin/AdminComplaintTable';
+import AppSnackbar from '../../components/shared/AppSnackbar';
+import ConfirmDialog from '../../components/shared/ConfirmDialog';
+import PaginationControls from '../../components/shared/PaginationControls';
 import { getAdminComplaints } from '../../services/adminService';
 import { updateComplaintStatus } from '../../services/complaintService';
 
@@ -192,38 +188,19 @@ function AdminComplaintManagementPage() {
             onStatusChange={handleStatusChange}
           />
 
-          <Dialog onClose={() => setPendingStatusUpdate(null)} open={Boolean(pendingStatusUpdate)}>
-            <DialogTitle>Update complaint status?</DialogTitle>
-            <DialogContent>
-              <DialogContentText>
-                This will change the complaint status to {pendingStatusUpdate?.status?.replace('_', ' ')}.
-              </DialogContentText>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setPendingStatusUpdate(null)}>Cancel</Button>
-              <Button disabled={Boolean(updatingComplaintId)} onClick={confirmStatusChange} variant="contained">
-                Confirm update
-              </Button>
-            </DialogActions>
-          </Dialog>
-
-          <Snackbar
-            autoHideDuration={3200}
-            message={success}
-            open={Boolean(success)}
-            onClose={() => setSuccess('')}
+          <ConfirmDialog
+            confirmLabel="Confirm update"
+            description={`This will change the complaint status to ${pendingStatusUpdate?.status?.replace('_', ' ') || 'the selected status'}.`}
+            isConfirming={Boolean(updatingComplaintId)}
+            open={Boolean(pendingStatusUpdate)}
+            title="Update complaint status?"
+            onClose={() => setPendingStatusUpdate(null)}
+            onConfirm={confirmStatusChange}
           />
 
-          {complaintsPage.totalPages > 1 && (
-            <Stack alignItems="center">
-              <Pagination
-                color="primary"
-                count={complaintsPage.totalPages}
-                page={page + 1}
-                onChange={(_, value) => setPage(value - 1)}
-              />
-            </Stack>
-          )}
+          <AppSnackbar message={success} open={Boolean(success)} onClose={() => setSuccess('')} />
+
+          <PaginationControls currentPage={page} totalPages={complaintsPage.totalPages} onChange={setPage} />
         </Stack>
       </Container>
     </Box>

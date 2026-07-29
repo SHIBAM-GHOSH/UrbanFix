@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import { Alert, Box, CircularProgress } from '@mui/material';
 import { getCurrentUser } from '../../services/userService';
+import ErrorAlert from '../shared/ErrorAlert';
+import LoadingState from '../shared/LoadingState';
 
 function AdminRoute() {
   const [profile, setProfile] = useState(null);
@@ -36,19 +37,11 @@ function AdminRoute() {
   }, []);
 
   if (isLoading) {
-    return (
-      <Box alignItems="center" display="flex" justifyContent="center" minHeight="50vh">
-        <CircularProgress />
-      </Box>
-    );
+    return <LoadingState message="Checking admin access..." />;
   }
 
   if (error) {
-    return (
-      <Box mx="auto" py={6} width="min(92vw, 720px)">
-        <Alert severity="error">{error}</Alert>
-      </Box>
-    );
+    return <ErrorAlert message={error} sx={{ mx: 'auto', my: 6, width: 'min(92vw, 720px)' }} />;
   }
 
   if (profile?.role !== 'ADMIN') {
