@@ -1,27 +1,50 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Alert, Container, Paper, Stack, Typography } from '@mui/material';
+import { Alert, Container, Paper, Stack } from '@mui/material';
 import ComplaintForm from '../../components/complaints/ComplaintForm';
-import { getComplaintById, updateComplaint } from '../../services/complaintService';
+import AppSnackbar from '../../components/shared/AppSnackbar';
+import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import LoadingState from '../../components/shared/LoadingState';
+import PageHeader from '../../components/shared/PageHeader';
+import { getComplaintById, updateComplaint } from '../../services/complaintService';
 
 function EditComplaintPage() {
   const { complaintId } = useParams();
   const navigate = useNavigate();
   const [complaint, setComplaint] = useState(null);
   const [error, setError] = useState('');
+  const [snackbar, setSnackbar] = useState({ message: '', severity: 'success' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
+
     async function loadComplaint() {
+      setError('');
+
       try {
-        setComplaint(await getComplaintById(complaintId));
+        const data = await getComplaintById(complaintId);
+        if (isMounted) {
+          setComplaint(data);
+        }
       } catch (requestError) {
-        setError(requestError.response?.data?.error || 'We could not load this complaint.');
+        if (isMounted) {
+          setError(
+            requestError.response?.data?.message ||
+              requestError.response?.data?.error ||
+              'We could not load this complaint. It may have been removed or you do not have permission to view it.',
+          );
+        }
       }
     }
 
     loadComplaint();
+
+    return () => {
+      isMounted = false;
+    };
   }, [complaintId]);
 
   async function handleSubmit({ image, ...updates }) {
@@ -29,32 +52,103 @@ function EditComplaintPage() {
     setIsSubmitting(true);
 
     try {
-      // The current update endpoint accepts imageUrl, not a replacement file.
       await updateComplaint(complaintId, updates);
-      navigate(`/complaints/${complaintId}`, { replace: true });
+      setSnackbar({ message: 'Complaint updated successfully.', severity: 'success' });
+      navigate(`/complaints/${complaintId}`, {
+        replace: true,
+        state: { message: 'Complaint updated successfully.' },
+      });
     } catch (requestError) {
-      setError(requestError.response?.data?.error || 'We could not update this complaint.');
+      const errMsg =
+        requestError.response?.data?.message ||
+        requestError.response?.data?.error ||
+        'We could not update this complaint. Please verify field inputs.';
+      setError(errMsg);
+      setSnackbar({ message: 'Unable to save complaint changes.', severity: 'error' });
     } finally {
       setIsSubmitting(false);
     }
   }
 
+  function handleCancelRequest() {
+    if (isDirty) {
+      setCancelDialogOpen(true);
+    } else {
+      navigate(`/complaints/${complaintId}`);
+    }
+  }
+
+  function handleConfirmCancel() {
+    setCancelDialogOpen(false);
+    navigate(`/complaints/${complaintId}`);
+  }
+
   if (!complaint && !error) {
-    return <LoadingState message="Loading complaint..." />;
+    return <LoadingState message="Loading complaint details..." />;
   }
 
   return (
-    <Container maxWidth="md" sx={{ py: { xs: 3, md: 5 } }}>
+    <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
       <Stack spacing={3}>
-        <div>
-          <Typography color="primary" fontWeight={800} variant="overline">Update report</Typography>
-          <Typography component="h1" variant="h1">Edit complaint</Typography>
-        </div>
+        <PageHeader
+          eyebrow="Update Report"
+          subtitle="Modify complaint title, category, description, location, or image URL."
+          title={`Edit Complaint #${complaintId}`}
+        />
+
         {error && <Alert severity="error">{error}</Alert>}
-        {complaint && <Paper sx={{ p: { xs: 2.5, md: 4 } }}><ComplaintForm initialValues={complaint} isSubmitting={isSubmitting} onSubmit={handleSubmit} submitLabel="Save changes" /></Paper>}
+
+        {complaint && complaint.status !== 'PENDING' && (
+          <Alert severity="warning">
+            This complaint is currently <strong>{complaint.status}</strong>. Updating details will inform the assigned municipal response team.
+          </Alert>
+        )}
+
+        {complaint && (
+          <Paper
+            elevation={0}
+            sx={{
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 3,
+              p: { xs: 2.5, md: 4 },
+            }}
+          >
+            <ComplaintForm
+              allowImageUpload={false}
+              cancelLabel="Discard Changes"
+              initialValues={complaint}
+              isSubmitting={isSubmitting}
+              submitLabel="Save Changes"
+              onCancel={handleCancelRequest}
+              onDirtyChange={setIsDirty}
+              onSubmit={handleSubmit}
+            />
+          </Paper>
+        )}
       </Stack>
+
+      {/* Cancel Confirmation Dialog */}
+      <ConfirmDialog
+        cancelLabel="Keep Editing"
+        confirmColor="error"
+        confirmLabel="Discard Changes"
+        description="You have unsaved changes. Are you sure you want to discard your edits and return to complaint details?"
+        onClose={() => setCancelDialogOpen(false)}
+        onConfirm={handleConfirmCancel}
+        open={cancelDialogOpen}
+        title="Discard Unsaved Changes?"
+      />
+
+      <AppSnackbar
+        message={snackbar.message}
+        open={Boolean(snackbar.message)}
+        severity={snackbar.severity}
+        onClose={() => setSnackbar({ message: '', severity: 'success' })}
+      />
     </Container>
   );
 }
 
 export default EditComplaintPage;
+
