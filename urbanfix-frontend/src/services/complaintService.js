@@ -19,11 +19,6 @@ export async function createComplaint(complaint, image) {
   return data;
 }
 
-export async function getComplaints(params) {
-  const { data } = await api.get('/complaints', { params: cleanParams(params) });
-  return data;
-}
-
 export async function getMyComplaints(params) {
   const { data } = await api.get('/complaints/my', { params: cleanParams(params) });
   return data;
@@ -41,11 +36,6 @@ export async function updateComplaint(complaintId, complaint) {
 
 export async function deleteComplaint(complaintId) {
   const { data } = await api.delete(`/complaints/${complaintId}`);
-  return data;
-}
-
-export async function searchComplaints(keyword, params) {
-  const { data } = await api.get('/complaints/search', { params: cleanParams({ keyword, ...params }) });
   return data;
 }
 

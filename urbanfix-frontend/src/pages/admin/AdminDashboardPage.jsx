@@ -1,31 +1,24 @@
 import { useEffect, useState } from 'react';
-import { Alert, Box, Container, Grid, Paper, Skeleton, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, Container, Grid, Skeleton, Stack, Typography } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
 import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import PendingActionsRoundedIcon from '@mui/icons-material/PendingActionsRounded';
 import TimelapseRoundedIcon from '@mui/icons-material/TimelapseRounded';
-import CategoryAnalyticsChart from '../../components/analytics/CategoryAnalyticsChart';
-import MonthlyAnalyticsChart from '../../components/analytics/MonthlyAnalyticsChart';
+import BarChartRoundedIcon from '@mui/icons-material/BarChartRounded';
+import ManageSearchRoundedIcon from '@mui/icons-material/ManageSearchRounded';
 import StatCard from '../../components/dashboard/StatCard';
-import { getAdminDashboardStatistics, getCategoryAnalytics, getMonthlyAnalytics } from '../../services/adminService';
+import { getAdminDashboardStatistics } from '../../services/adminService';
 
 function AdminDashboardPage() {
   const [dashboard, setDashboard] = useState(null);
-  const [categories, setCategories] = useState([]);
-  const [monthly, setMonthly] = useState([]);
   const [error, setError] = useState('');
 
   useEffect(() => {
     async function loadDashboard() {
       try {
-        const [dashboardData, categoryData, monthlyData] = await Promise.all([
-          getAdminDashboardStatistics(),
-          getCategoryAnalytics(),
-          getMonthlyAnalytics(),
-        ]);
+        const dashboardData = await getAdminDashboardStatistics();
         setDashboard(dashboardData);
-        setCategories(categoryData);
-        setMonthly(monthlyData);
       } catch (requestError) {
         setError(requestError.response?.data?.error || 'We could not load the admin dashboard.');
       }
@@ -53,22 +46,14 @@ function AdminDashboardPage() {
         <Grid container spacing={2.5}>
           {statCards.map((stat) => <Grid key={stat.label} size={{ xs: 12, sm: 6, lg: 3 }}>{dashboard ? <StatCard {...stat} /> : <Skeleton height={130} variant="rounded" />}</Grid>)}
         </Grid>
-        <Grid container spacing={2.5}>
-          <Grid size={{ xs: 12, lg: 7 }}>
-            <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
-              <Typography gutterBottom variant="h3">Monthly complaints</Typography>
-              <Typography color="text.secondary" sx={{ mb: 2 }} variant="body2">Incoming reports grouped by month.</Typography>
-              {dashboard ? <MonthlyAnalyticsChart data={monthly} /> : <Skeleton height={300} variant="rounded" />}
-            </Paper>
-          </Grid>
-          <Grid size={{ xs: 12, lg: 5 }}>
-            <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
-              <Typography gutterBottom variant="h3">Categories</Typography>
-              <Typography color="text.secondary" sx={{ mb: 2 }} variant="body2">Distribution of reported civic issues.</Typography>
-              {dashboard ? <CategoryAnalyticsChart data={categories} /> : <Skeleton height={300} variant="rounded" />}
-            </Paper>
-          </Grid>
-        </Grid>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+          <Button component={RouterLink} startIcon={<ManageSearchRoundedIcon />} to="/admin/complaints" variant="contained">
+            Manage complaints
+          </Button>
+          <Button component={RouterLink} startIcon={<BarChartRoundedIcon />} to="/admin/analytics" variant="outlined">
+            View analytics
+          </Button>
+        </Stack>
       </Stack>
     </Container>
   );

@@ -4,7 +4,7 @@ import AppHeader from './AppHeader';
 
 function AppShell() {
   return (
-    <Box sx={{ minHeight: '100vh' }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
       <AppHeader />
       <Box component="main">
         <Outlet />
