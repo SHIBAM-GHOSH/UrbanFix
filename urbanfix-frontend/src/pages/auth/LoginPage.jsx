@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import {
   Alert,
   Box,
@@ -12,13 +12,19 @@ import {
 import LoginRoundedIcon from '@mui/icons-material/LoginRounded';
 import AuthLayout from '../../components/auth/AuthLayout';
 import { login } from '../../services/authService';
-import { saveToken } from '../../utils/auth';
+import { isAuthenticated, saveToken } from '../../utils/auth';
 
 function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectTo = location.state?.from?.pathname || '/dashboard';
   const [formValues, setFormValues] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  if (isAuthenticated()) {
+    return <Navigate replace to="/dashboard" />;
+  }
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -33,9 +39,9 @@ function LoginPage() {
     try {
       const { token } = await login(formValues);
       saveToken(token);
-      navigate('/dashboard', { replace: true });
+      navigate(redirectTo, { replace: true });
     } catch (requestError) {
-      setError(requestError.response?.data?.error || 'Unable to sign in. Please try again.');
+      setError(requestError.response?.data?.message || requestError.response?.data?.error || 'Unable to sign in. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -48,6 +54,7 @@ function LoginPage() {
     >
       <Box component="form" noValidate onSubmit={handleSubmit}>
         <Stack spacing={2.5}>
+          {location.state?.message && <Alert severity="success">{location.state.message}</Alert>}
           {error && <Alert severity="error">{error}</Alert>}
           <TextField
             autoComplete="email"

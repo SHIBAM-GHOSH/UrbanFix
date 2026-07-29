@@ -9,6 +9,7 @@ import EditComplaintPage from './pages/complaints/EditComplaintPage';
 import ProfilePage from './pages/profile/ProfilePage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AdminComplaintManagementPage from './pages/admin/AdminComplaintManagementPage';
+import AdminAnalyticsPage from './pages/admin/AdminAnalyticsPage';
 import AppShell from './components/layout/AppShell';
 import ProtectedRoute from './components/routing/ProtectedRoute';
 import AdminRoute from './components/routing/AdminRoute';
@@ -31,6 +32,7 @@ function App() {
             <Route element={<AdminRoute />}>
               <Route element={<AdminDashboardPage />} path="/admin" />
               <Route element={<AdminComplaintManagementPage />} path="/admin/complaints" />
+              <Route element={<AdminAnalyticsPage />} path="/admin/analytics" />
             </Route>
           </Route>
         </Route>

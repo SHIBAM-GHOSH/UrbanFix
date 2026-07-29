@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { clearToken, getToken } from '../utils/auth';
 
 const api = axios.create({
   baseURL: '/api',
@@ -8,7 +9,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('urbanfix_token');
+  const token = getToken();
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -22,7 +23,7 @@ api.interceptors.response.use(
   (error) => {
     // Expired or invalid JWTs must not leave the app in an authenticated state.
     if (error.response?.status === 401) {
-      localStorage.removeItem('urbanfix_token');
+      clearToken();
 
       if (window.location.pathname !== '/login') {
         window.location.assign('/login');

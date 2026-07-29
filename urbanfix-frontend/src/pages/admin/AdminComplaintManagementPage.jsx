@@ -4,6 +4,11 @@ import {
   Box,
   Button,
   Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   FormControl,
   Grid,
   InputLabel,
@@ -11,6 +16,7 @@ import {
   Pagination,
   Paper,
   Select,
+  Snackbar,
   Stack,
   TextField,
   Typography,
@@ -30,6 +36,7 @@ function AdminComplaintManagementPage() {
   const [page, setPage] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [updatingComplaintId, setUpdatingComplaintId] = useState(null);
+  const [pendingStatusUpdate, setPendingStatusUpdate] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -38,7 +45,7 @@ function AdminComplaintManagementPage() {
       page,
       size: 10,
       sortBy: 'createdAt',
-      direction: 'DESC',
+      sortDirection: 'desc',
     };
 
     // Keep empty strings out of enum query params so Spring binding stays clean.
@@ -91,10 +98,18 @@ function AdminComplaintManagementPage() {
     setPage(0);
   }
 
-  async function handleStatusChange(complaintId, status) {
+  function handleStatusChange(complaintId, status) {
+    setPendingStatusUpdate({ complaintId, status });
+  }
+
+  async function confirmStatusChange() {
+    if (!pendingStatusUpdate) return;
+
+    const { complaintId, status } = pendingStatusUpdate;
     setUpdatingComplaintId(complaintId);
     setError('');
     setSuccess('');
+    setPendingStatusUpdate(null);
 
     try {
       await updateComplaintStatus(complaintId, status);
@@ -175,6 +190,28 @@ function AdminComplaintManagementPage() {
             isLoading={isLoading}
             updatingComplaintId={updatingComplaintId}
             onStatusChange={handleStatusChange}
+          />
+
+          <Dialog onClose={() => setPendingStatusUpdate(null)} open={Boolean(pendingStatusUpdate)}>
+            <DialogTitle>Update complaint status?</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                This will change the complaint status to {pendingStatusUpdate?.status?.replace('_', ' ')}.
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setPendingStatusUpdate(null)}>Cancel</Button>
+              <Button disabled={Boolean(updatingComplaintId)} onClick={confirmStatusChange} variant="contained">
+                Confirm update
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          <Snackbar
+            autoHideDuration={3200}
+            message={success}
+            open={Boolean(success)}
+            onClose={() => setSuccess('')}
           />
 
           {complaintsPage.totalPages > 1 && (

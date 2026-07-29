@@ -1,11 +1,13 @@
 import api from './api';
+import { cleanParams } from '../utils/apiParams';
 
 export async function createComplaint(complaint, image) {
   const formData = new FormData();
 
-  Object.entries(complaint).forEach(([key, value]) => {
-    formData.append(key, value);
-  });
+  formData.append(
+    'request',
+    new Blob([JSON.stringify(cleanParams(complaint))], { type: 'application/json' }),
+  );
 
   if (image) {
     formData.append('image', image);
@@ -18,12 +20,12 @@ export async function createComplaint(complaint, image) {
 }
 
 export async function getComplaints(params) {
-  const { data } = await api.get('/complaints', { params });
+  const { data } = await api.get('/complaints', { params: cleanParams(params) });
   return data;
 }
 
 export async function getMyComplaints(params) {
-  const { data } = await api.get('/complaints/my', { params });
+  const { data } = await api.get('/complaints/my', { params: cleanParams(params) });
   return data;
 }
 
@@ -43,7 +45,7 @@ export async function deleteComplaint(complaintId) {
 }
 
 export async function searchComplaints(keyword, params) {
-  const { data } = await api.get('/complaints/search', { params: { keyword, ...params } });
+  const { data } = await api.get('/complaints/search', { params: cleanParams({ keyword, ...params }) });
   return data;
 }
 

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import {
   Alert,
   Box,
@@ -99,8 +100,8 @@ function UserDashboardPage() {
                 Submit a clear report with the location and a photo to help local teams respond.
               </Typography>
             </Box>
-            <Button disabled startIcon={<AddCircleOutlineRoundedIcon />} variant="contained">
-              Report an issue soon
+            <Button component={RouterLink} startIcon={<AddCircleOutlineRoundedIcon />} to="/complaints/new" variant="contained">
+              Report an issue
             </Button>
           </Stack>
         </Paper>

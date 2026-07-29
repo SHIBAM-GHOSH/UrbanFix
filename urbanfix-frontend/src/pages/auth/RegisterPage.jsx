@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, Navigate, useNavigate } from 'react-router-dom';
 import {
   Alert,
   Box,
@@ -12,12 +12,17 @@ import {
 import PersonAddAltRoundedIcon from '@mui/icons-material/PersonAddAltRounded';
 import AuthLayout from '../../components/auth/AuthLayout';
 import { register } from '../../services/authService';
+import { isAuthenticated } from '../../utils/auth';
 
 function RegisterPage() {
   const navigate = useNavigate();
   const [formValues, setFormValues] = useState({ fullName: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  if (isAuthenticated()) {
+    return <Navigate replace to="/dashboard" />;
+  }
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -36,7 +41,7 @@ function RegisterPage() {
         state: { message: 'Account created successfully. Please sign in.' },
       });
     } catch (requestError) {
-      setError(requestError.response?.data?.error || 'Unable to create your account. Please try again.');
+      setError(requestError.response?.data?.message || requestError.response?.data?.error || 'Unable to create your account. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

@@ -1,4 +1,5 @@
 import api from './api';
+import { cleanParams } from '../utils/apiParams';
 
 export async function getAdminDashboardStatistics() {
   const { data } = await api.get('/admin/dashboard');
@@ -16,6 +17,6 @@ export async function getMonthlyAnalytics() {
 }
 
 export async function getAdminComplaints(params) {
-  const { data } = await api.get('/admin/complaints', { params });
+  const { data } = await api.get('/admin/complaints', { params: cleanParams(params) });
   return data;
 }

@@ -30,7 +30,7 @@ function AdminComplaintTable({ complaints, isLoading, updatingComplaintId, onSta
             <TableCell>Category</TableCell>
             <TableCell>Reporter</TableCell>
             <TableCell>Status</TableCell>
-            <TableCell>Severity</TableCell>
+            <TableCell>Created</TableCell>
             <TableCell>Update</TableCell>
           </TableRow>
         </TableHead>
@@ -48,11 +48,13 @@ function AdminComplaintTable({ complaints, isLoading, updatingComplaintId, onSta
               <TableCell>
                 <Chip color="primary" label={complaint.category || 'General'} size="small" variant="outlined" />
               </TableCell>
-              <TableCell>{complaint.userFullName || complaint.createdBy || 'Citizen'}</TableCell>
+              <TableCell>{complaint.userName || 'Citizen'}</TableCell>
               <TableCell>
                 <ComplaintStatusChip status={complaint.status} />
               </TableCell>
-              <TableCell>{complaint.severity || 'Not set'}</TableCell>
+              <TableCell>
+                {complaint.createdAt ? new Date(complaint.createdAt).toLocaleDateString() : 'Not available'}
+              </TableCell>
               <TableCell>
                 <FormControl fullWidth size="small">
                   <Select

@@ -17,6 +17,8 @@ import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRou
 import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import AdminPanelSettingsRoundedIcon from '@mui/icons-material/AdminPanelSettingsRounded';
+import AccountCircleRoundedIcon from '@mui/icons-material/AccountCircleRounded';
+import BarChartRoundedIcon from '@mui/icons-material/BarChartRounded';
 import { clearToken } from '../../utils/auth';
 import { getCurrentUser } from '../../services/userService';
 
@@ -73,12 +75,29 @@ function AppHeader() {
               </Box>
             </Button>
             {profile?.role === 'ADMIN' && (
-              <Button component={RouterLink} startIcon={<AdminPanelSettingsRoundedIcon />} to="/admin">
-                <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>
-                  Admin
-                </Box>
-              </Button>
+              <>
+                <Button component={RouterLink} startIcon={<AdminPanelSettingsRoundedIcon />} to="/admin">
+                  <Box component="span" sx={{ display: { xs: 'none', lg: 'inline' } }}>
+                    Admin
+                  </Box>
+                </Button>
+                <Button component={RouterLink} startIcon={<AssignmentRoundedIcon />} to="/admin/complaints">
+                  <Box component="span" sx={{ display: { xs: 'none', lg: 'inline' } }}>
+                    Manage
+                  </Box>
+                </Button>
+                <Button component={RouterLink} startIcon={<BarChartRoundedIcon />} to="/admin/analytics">
+                  <Box component="span" sx={{ display: { xs: 'none', lg: 'inline' } }}>
+                    Analytics
+                  </Box>
+                </Button>
+              </>
             )}
+            <Button component={RouterLink} startIcon={<AccountCircleRoundedIcon />} to="/profile">
+              <Box component="span" sx={{ display: { xs: 'none', lg: 'inline' } }}>
+                Profile
+              </Box>
+            </Button>
             <Button component={RouterLink} startIcon={<AddCircleOutlineRoundedIcon />} to="/complaints/new" variant="contained">
               <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
                 Report issue
