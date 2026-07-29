@@ -27,7 +27,15 @@ public interface ComplaintService
         ComplaintResponse getComplaintById(Long complaintId);
         ComplaintResponse updateComplaint( Long complaintId, UpdateComplaintRequest request);
         void deleteComplaint(Long complaintId);
-        List<ComplaintResponse> getMyComplaints();
+        // Returns the authenticated user's complaints with optional filters.
+        Page<ComplaintResponse> getMyComplaints(
+                        int page,
+                        int size,
+                        String sortBy,
+                        String direction,
+                        ComplaintStatus status,
+                        String category,
+                        String keyword);
 
         Page<ComplaintResponse> getAllComplaints(int page ,int size, String sortBy, String direction,
                                                 ComplaintStatus status,String keyword);

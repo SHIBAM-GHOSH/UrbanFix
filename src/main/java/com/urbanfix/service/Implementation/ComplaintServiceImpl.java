@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -210,18 +211,51 @@ public class ComplaintServiceImpl implements ComplaintService
 
                 }
         @Override
-        public List<ComplaintResponse> getMyComplaints() 
+        public Page<ComplaintResponse> getMyComplaints(
+                        int page,
+                        int size,
+                        String sortBy,
+                        String direction,
+                        ComplaintStatus status,
+                        String category,
+                        String keyword) 
                 {
-                        User currentUser = getCurrentUser();
-                        List<Complaint> complaints = complaintRepository1.findByUser(currentUser);
-                        List<ComplaintResponse> responses = new ArrayList<>();
+                        validatePageRequest(page, size, sortBy, direction);
 
-                        for (Complaint complaint : complaints) {
-                                responses.add(
-                                        complaintMapper1.mapToResponse(complaint));
-                        }
-                        return responses;
+                        Sort sort = direction.equalsIgnoreCase("asc")
+                                        ? Sort.by(sortBy).ascending()
+                                        : Sort.by(sortBy).descending();
+                        Pageable pageable = PageRequest.of(page, size, sort);
+                        User currentUser = getCurrentUser();
+
+                        // Combine ownership with the same reusable filters used elsewhere.
+                        Specification<Complaint> specification = Specification
+                                        .where(ComplaintSpecification.belongsToUser(currentUser))
+                                        .and(ComplaintSpecification.hasStatus(status))
+                                        .and(ComplaintSpecification.hasCategory(category))
+                                        .and(ComplaintSpecification.containsKeyword(keyword));
+
+                        return complaintRepository1.findAll(specification, pageable)
+                                        .map(complaintMapper1::mapToResponse);
                 }
+
+        // Prevent invalid pagination and unsafe client-controlled sort fields.
+        private void validatePageRequest(int page, int size, String sortBy, String direction) {
+                Set<String> allowedSortFields = Set.of(
+                                "createdAt", "updatedAt", "title", "category", "status");
+
+                if (page < 0 || size < 1 || size > 100) {
+                        throw new InvalidOperationException("Page must be non-negative and size must be between 1 and 100.");
+                }
+
+                if (!allowedSortFields.contains(sortBy)) {
+                        throw new InvalidOperationException("Unsupported sort field: " + sortBy);
+                }
+
+                if (!direction.equalsIgnoreCase("asc") && !direction.equalsIgnoreCase("desc")) {
+                        throw new InvalidOperationException("Sort direction must be asc or desc.");
+                }
+        }
         
         @Override
         public Page<ComplaintResponse> searchComplaints(String keyword,int page,int size) 

@@ -1,7 +1,5 @@
 package com.urbanfix.controller;
 
-import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -30,6 +28,7 @@ import com.urbanfix.enums.ComplaintStatus;
 import com.urbanfix.service.InterFaces.ComplaintService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -98,9 +97,19 @@ public class ComplaintController
             }
 
         @GetMapping("/my")
-        public ResponseEntity<List<ComplaintResponse>> getMyComplaints() 
+        @Operation(summary = "Get the authenticated user's complaints")
+        public ResponseEntity<Page<ComplaintResponse>> getMyComplaints(
+                                        @RequestParam(defaultValue = "0") int page,
+                                        @RequestParam(defaultValue = "10") int size,
+                                        @RequestParam(defaultValue = "createdAt") String sortBy,
+                                        @RequestParam(defaultValue = "desc") String direction,
+                                        @RequestParam(required = false) ComplaintStatus status,
+                                        @RequestParam(required = false) String category,
+                                        @RequestParam(required = false) String keyword) 
             {
-                List<ComplaintResponse> responses = complaintService1.getMyComplaints();
+                // The service always scopes the query to the JWT-authenticated user.
+                Page<ComplaintResponse> responses = complaintService1.getMyComplaints(
+                                page, size, sortBy, direction, status, category, keyword);
                 return ResponseEntity.ok(responses);
             }
 

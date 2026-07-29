@@ -19,6 +19,11 @@ public interface ComplaintRepository extends JpaRepository<Complaint, Long>,
 
     // Find all complaints created by a specific user
     List<Complaint> findByUser(User user);
+
+    // Counts avoid loading every user complaint for dashboard statistics.
+    long countByUser(User user);
+
+    long countByUserAndStatus(User user, ComplaintStatus status);
     
    // Page<Complaint> findByStatus(ComplaintStatus status,Pageable pageable);
     Page<Complaint> findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(
