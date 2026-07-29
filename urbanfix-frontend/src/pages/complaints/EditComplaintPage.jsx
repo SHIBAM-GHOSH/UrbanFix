@@ -2,18 +2,18 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Alert, Container, Paper, Stack } from '@mui/material';
 import ComplaintForm from '../../components/complaints/ComplaintForm';
-import AppSnackbar from '../../components/shared/AppSnackbar';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import LoadingState from '../../components/shared/LoadingState';
 import PageHeader from '../../components/shared/PageHeader';
+import { useSnackbar } from '../../context/SnackbarContext';
 import { getComplaintById, updateComplaint } from '../../services/complaintService';
 
 function EditComplaintPage() {
   const { complaintId } = useParams();
   const navigate = useNavigate();
+  const { showSuccess, showError } = useSnackbar();
   const [complaint, setComplaint] = useState(null);
   const [error, setError] = useState('');
-  const [snackbar, setSnackbar] = useState({ message: '', severity: 'success' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
@@ -53,7 +53,7 @@ function EditComplaintPage() {
 
     try {
       await updateComplaint(complaintId, updates);
-      setSnackbar({ message: 'Complaint updated successfully.', severity: 'success' });
+      showSuccess('Complaint updated successfully.');
       navigate(`/complaints/${complaintId}`, {
         replace: true,
         state: { message: 'Complaint updated successfully.' },
@@ -64,7 +64,7 @@ function EditComplaintPage() {
         requestError.response?.data?.error ||
         'We could not update this complaint. Please verify field inputs.';
       setError(errMsg);
-      setSnackbar({ message: 'Unable to save complaint changes.', severity: 'error' });
+      showError('Unable to save complaint changes.');
     } finally {
       setIsSubmitting(false);
     }
@@ -139,16 +139,10 @@ function EditComplaintPage() {
         open={cancelDialogOpen}
         title="Discard Unsaved Changes?"
       />
-
-      <AppSnackbar
-        message={snackbar.message}
-        open={Boolean(snackbar.message)}
-        severity={snackbar.severity}
-        onClose={() => setSnackbar({ message: '', severity: 'success' })}
-      />
     </Container>
   );
 }
 
 export default EditComplaintPage;
+
 

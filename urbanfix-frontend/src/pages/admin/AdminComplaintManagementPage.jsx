@@ -20,10 +20,10 @@ import ManageSearchRoundedIcon from '@mui/icons-material/ManageSearchRounded';
 import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import FilterListRoundedIcon from '@mui/icons-material/FilterListRounded';
 import AdminComplaintTable from '../../components/admin/AdminComplaintTable';
-import AppSnackbar from '../../components/shared/AppSnackbar';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import PaginationControls from '../../components/shared/PaginationControls';
 import PageHeader from '../../components/shared/PageHeader';
+import { useSnackbar } from '../../context/SnackbarContext';
 import { getAdminComplaints } from '../../services/adminService';
 import { updateComplaintStatus } from '../../services/complaintService';
 
@@ -40,6 +40,7 @@ const QUICK_CATEGORIES = [
 
 function AdminComplaintManagementPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { showSuccess, showError } = useSnackbar();
 
   const initialStatus = searchParams.get('status') || '';
   const initialCategory = searchParams.get('category') || '';
@@ -52,7 +53,6 @@ function AdminComplaintManagementPage() {
   const [updatingComplaintId, setUpdatingComplaintId] = useState(null);
   const [pendingStatusUpdate, setPendingStatusUpdate] = useState(null);
   const [error, setError] = useState('');
-  const [snackbar, setSnackbar] = useState({ message: '', severity: 'success' });
 
   // Sync state if URL search parameters change externally
   useEffect(() => {
@@ -114,7 +114,6 @@ function AdminComplaintManagementPage() {
     setPage(0);
     setAppliedFilters(filters);
 
-    // Update URL params
     const nextParams = {};
     if (filters.status) nextParams.status = filters.status;
     if (filters.category.trim()) nextParams.category = filters.category.trim();
@@ -162,15 +161,12 @@ function AdminComplaintManagementPage() {
           complaint.id === complaintId ? { ...complaint, status } : complaint,
         ),
       }));
-      setSnackbar({
-        message: `Complaint #${complaintId} status updated to ${status.replace('_', ' ')}.`,
-        severity: 'success',
-      });
+      showSuccess(`Complaint #${complaintId} status updated to ${status.replace('_', ' ')}.`);
     } catch (err) {
       const errMsg =
         err.response?.data?.message || err.response?.data?.error || 'Unable to update complaint status.';
       setError(errMsg);
-      setSnackbar({ message: 'Failed to update complaint status.', severity: 'error' });
+      showError('Failed to update complaint status.');
     } finally {
       setUpdatingComplaintId(null);
     }
@@ -328,14 +324,6 @@ function AdminComplaintManagementPage() {
             onClose={() => setPendingStatusUpdate(null)}
             onConfirm={confirmStatusChange}
           />
-
-          {/* Snackbar Toast */}
-          <AppSnackbar
-            message={snackbar.message}
-            open={Boolean(snackbar.message)}
-            severity={snackbar.severity}
-            onClose={() => setSnackbar({ message: '', severity: 'success' })}
-          />
         </Stack>
       </Container>
     </Box>
@@ -343,4 +331,5 @@ function AdminComplaintManagementPage() {
 }
 
 export default AdminComplaintManagementPage;
+
 
