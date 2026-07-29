@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link as RouterLink, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Alert,
   Box,
@@ -17,6 +17,9 @@ import { isAuthenticated, saveToken } from '../../utils/auth';
 function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const sessionExpired = searchParams.get('sessionExpired') === 'true';
+
   const redirectTo = location.state?.from?.pathname || '/dashboard';
   const [formValues, setFormValues] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
@@ -41,7 +44,12 @@ function LoginPage() {
       saveToken(token);
       navigate(redirectTo, { replace: true });
     } catch (requestError) {
-      setError(requestError.response?.data?.message || requestError.response?.data?.error || 'Unable to sign in. Please try again.');
+      setError(
+        requestError.message ||
+          requestError.response?.data?.message ||
+          requestError.response?.data?.error ||
+          'Unable to sign in. Please check your credentials.',
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -54,6 +62,9 @@ function LoginPage() {
     >
       <Box component="form" noValidate onSubmit={handleSubmit}>
         <Stack spacing={2.5}>
+          {sessionExpired && (
+            <Alert severity="warning">Your session expired or your token was invalid. Please sign in again.</Alert>
+          )}
           {location.state?.message && <Alert severity="success">{location.state.message}</Alert>}
           {error && <Alert severity="error">{error}</Alert>}
           <TextField
@@ -99,3 +110,4 @@ function LoginPage() {
 }
 
 export default LoginPage;
+

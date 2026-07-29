@@ -21,12 +21,21 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Expired or invalid JWTs must not leave the app in an authenticated state.
-    if (error.response?.status === 401) {
+    // 1. Network Failure / Backend Unreachable
+    if (!error.response) {
+      const customNetworkError = new Error(
+        'Unable to connect to the UrbanFix server. Please check your internet connection or verify the backend is running.',
+      );
+      customNetworkError.isNetworkError = true;
+      return Promise.reject(customNetworkError);
+    }
+
+    // 2. JWT Expired or Unauthorized (401)
+    if (error.response.status === 401) {
       clearToken();
 
       if (window.location.pathname !== '/login') {
-        window.location.assign('/login');
+        window.location.assign('/login?sessionExpired=true');
       }
     }
 
@@ -35,3 +44,4 @@ api.interceptors.response.use(
 );
 
 export default api;
+

@@ -8,6 +8,8 @@ import {
   Stack,
   TextField,
 } from '@mui/material';
+import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import ComplaintCard from '../../components/complaints/ComplaintCard';
 import EmptyState from '../../components/shared/EmptyState';
 import FilterPanel from '../../components/shared/FilterPanel';
@@ -28,6 +30,8 @@ function ComplaintListPage() {
   const [appliedFilters, setAppliedFilters] = useState(initialFilters);
   const [page, setPage] = useState(0);
   const [error, setError] = useState('');
+
+  const isFiltered = Boolean(appliedFilters.keyword || appliedFilters.category || appliedFilters.status);
 
   useEffect(() => {
     async function loadComplaints() {
@@ -70,17 +74,17 @@ function ComplaintListPage() {
 
   return (
     <Container maxWidth="xl" sx={{ py: { xs: 3, md: 5 } }}>
-      <Stack spacing={3}>
+      <Stack spacing={3.5}>
         <PageHeader
-          eyebrow="Your reports"
-          subtitle="Review and track every civic issue you have reported."
-          title="My complaints"
+          eyebrow="Your Reports"
+          subtitle="Review and track every civic issue you have submitted to municipal teams."
+          title="My Complaints"
         />
 
         <FilterPanel onSubmit={handleFilterSubmit}>
           <SearchToolbar onReset={clearFilters}>
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-              <TextField fullWidth label="Search reports" name="keyword" onChange={handleFilterChange} placeholder="Title or description" value={filters.keyword} />
+              <TextField fullWidth label="Search reports" name="keyword" onChange={handleFilterChange} placeholder="Title or description..." value={filters.keyword} />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <TextField fullWidth label="Category" name="category" onChange={handleFilterChange} placeholder="e.g. Roads" value={filters.category} />
@@ -102,7 +106,7 @@ function ComplaintListPage() {
         <Grid container spacing={2.5}>
           {!complaintPage && !error && Array.from({ length: 6 }).map((_, index) => (
             <Grid key={index} size={{ xs: 12, sm: 6, lg: 4 }}>
-              <Skeleton height={330} variant="rounded" />
+              <Skeleton height={330} variant="rounded" sx={{ borderRadius: 3 }} />
             </Grid>
           ))}
           {complaintPage?.content.map((complaint) => (
@@ -114,12 +118,21 @@ function ComplaintListPage() {
 
         {complaintPage?.empty && (
           <EmptyState
-            description="Adjust your filters or create a new report when you spot an issue."
-            title="No matching reports found"
+            actionIcon={isFiltered ? <RestartAltRoundedIcon /> : <AddRoundedIcon />}
+            actionLabel={isFiltered ? 'Reset Filters & Search' : 'Report New Issue'}
+            description={
+              isFiltered
+                ? 'No civic reports match your search query or selected status filters. Try clearing your search parameters.'
+                : 'You have not submitted any civic complaints yet. Spot an issue in your neighborhood? Report it now.'
+            }
+            onAction={isFiltered ? clearFilters : undefined}
+            title={isFiltered ? 'No Matching Reports Found' : 'No Complaints Reported Yet'}
+            to={isFiltered ? undefined : '/complaints/new'}
+            type={isFiltered ? 'search' : 'complaints'}
           />
         )}
 
-        {complaintPage && (
+        {complaintPage && complaintPage.totalPages > 1 && (
           <PaginationControls
             currentPage={complaintPage.number}
             totalPages={complaintPage.totalPages}
@@ -132,3 +145,4 @@ function ComplaintListPage() {
 }
 
 export default ComplaintListPage;
+

@@ -10,6 +10,7 @@ import ProfilePage from './pages/profile/ProfilePage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AdminComplaintManagementPage from './pages/admin/AdminComplaintManagementPage';
 import AdminAnalyticsPage from './pages/admin/AdminAnalyticsPage';
+import NotFoundPage from './pages/shared/NotFoundPage';
 import AppShell from './components/layout/AppShell';
 import ProtectedRoute from './components/routing/ProtectedRoute';
 import AdminRoute from './components/routing/AdminRoute';
@@ -36,10 +37,11 @@ function App() {
             </Route>
           </Route>
         </Route>
-        <Route element={<Navigate replace to="/" />} path="*" />
+        <Route element={<NotFoundPage />} path="*" />
       </Routes>
     </BrowserRouter>
   );
 }
 
 export default App;
+
