@@ -12,6 +12,8 @@ import {
 } from '@mui/material';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded';
+import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
+import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import { clearToken } from '../../utils/auth';
 
@@ -38,6 +40,16 @@ function AppHeader() {
             <Button component={RouterLink} startIcon={<DashboardRoundedIcon />} to="/dashboard">
               <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
                 Dashboard
+              </Box>
+            </Button>
+            <Button component={RouterLink} startIcon={<AssignmentRoundedIcon />} to="/complaints">
+              <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>
+                My complaints
+              </Box>
+            </Button>
+            <Button component={RouterLink} startIcon={<AddCircleOutlineRoundedIcon />} to="/complaints/new" variant="contained">
+              <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                Report issue
               </Box>
             </Button>
             <Tooltip title="Sign out">
