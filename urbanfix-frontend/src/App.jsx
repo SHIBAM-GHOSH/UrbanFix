@@ -6,6 +6,7 @@ import ComplaintListPage from './pages/complaints/ComplaintListPage';
 import CreateComplaintPage from './pages/complaints/CreateComplaintPage';
 import ComplaintDetailPage from './pages/complaints/ComplaintDetailPage';
 import EditComplaintPage from './pages/complaints/EditComplaintPage';
+import ProfilePage from './pages/profile/ProfilePage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AdminComplaintManagementPage from './pages/admin/AdminComplaintManagementPage';
 import AppShell from './components/layout/AppShell';
@@ -26,6 +27,7 @@ function App() {
             <Route element={<CreateComplaintPage />} path="/complaints/new" />
             <Route element={<ComplaintDetailPage />} path="/complaints/:complaintId" />
             <Route element={<EditComplaintPage />} path="/complaints/:complaintId/edit" />
+            <Route element={<ProfilePage />} path="/profile" />
             <Route element={<AdminRoute />}>
               <Route element={<AdminDashboardPage />} path="/admin" />
               <Route element={<AdminComplaintManagementPage />} path="/admin/complaints" />
