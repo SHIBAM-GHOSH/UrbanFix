@@ -29,6 +29,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recha
 import StatCard from '../../components/dashboard/StatCard';
 import EmptyState from '../../components/shared/EmptyState';
 import ComplaintOverviewMap from '../../components/maps/ComplaintOverviewMap';
+import AdminRoutePlanner from '../../components/admin/AdminRoutePlanner';
 import {
   getAdminDashboardStatistics,
   getAdminComplaints,
@@ -489,6 +490,9 @@ function AdminDashboardPage() {
             <ComplaintOverviewMap complaints={recentComplaints} height={420} />
           </Stack>
         </Paper>
+
+        {/* Field Inspection Route Planner */}
+        <AdminRoutePlanner complaints={recentComplaints} />
       </Stack>
     </Container>
   );

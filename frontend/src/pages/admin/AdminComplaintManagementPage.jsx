@@ -14,12 +14,17 @@ import {
   Select,
   Stack,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
 } from '@mui/material';
 import ManageSearchRoundedIcon from '@mui/icons-material/ManageSearchRounded';
 import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import FilterListRoundedIcon from '@mui/icons-material/FilterListRounded';
+import TableRowsRoundedIcon from '@mui/icons-material/TableRowsRounded';
+import RouteRoundedIcon from '@mui/icons-material/RouteRounded';
 import AdminComplaintTable from '../../components/admin/AdminComplaintTable';
+import AdminRoutePlanner from '../../components/admin/AdminRoutePlanner';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import PaginationControls from '../../components/shared/PaginationControls';
 import PageHeader from '../../components/shared/PageHeader';
@@ -53,6 +58,7 @@ function AdminComplaintManagementPage() {
   const [updatingComplaintId, setUpdatingComplaintId] = useState(null);
   const [pendingStatusUpdate, setPendingStatusUpdate] = useState(null);
   const [error, setError] = useState('');
+  const [viewMode, setViewMode] = useState('table');
 
   // Sync state if URL search parameters change externally
   useEffect(() => {
@@ -278,40 +284,54 @@ function AdminComplaintManagementPage() {
             </Stack>
           </Paper>
 
-          {/* Results Summary Header */}
-          <Stack direction="row" alignItems="center" justifyContent="space-between">
+          {/* Results Summary Header & View Toggle */}
+          <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" spacing={1.5}>
             <Typography color="text.secondary" variant="body2" fontWeight={700}>
               Showing {complaintsPage.content?.length || 0} of {complaintsPage.totalElements || 0} complaints
             </Typography>
-            {appliedFilters.status && (
-              <Chip
-                label={`Status: ${appliedFilters.status.replace('_', ' ')}`}
-                onDelete={() => {
-                  const next = { ...filters, status: '' };
-                  setFilters(next);
-                  setAppliedFilters(next);
-                }}
-                size="small"
-                color="primary"
-              />
-            )}
+
+            <ToggleButtonGroup
+              value={viewMode}
+              exclusive
+              onChange={(_, next) => next && setViewMode(next)}
+              size="small"
+              sx={{ bgcolor: 'background.paper' }}
+            >
+              <ToggleButton value="table" aria-label="Table View">
+                <TableRowsRoundedIcon fontSize="small" sx={{ mr: 0.75 }} /> Triage Table
+              </ToggleButton>
+              <ToggleButton value="planner" aria-label="Field Route Planner">
+                <RouteRoundedIcon fontSize="small" sx={{ mr: 0.75 }} /> Field Route Planner
+              </ToggleButton>
+            </ToggleButtonGroup>
           </Stack>
 
-          {/* Complaint Table */}
-          <AdminComplaintTable
-            complaints={complaintsPage.content || []}
-            isLoading={isLoading}
-            updatingComplaintId={updatingComplaintId}
-            onStatusChange={handleStatusChange}
-          />
-
-          {/* Pagination Controls */}
-          {complaintsPage.totalPages > 1 && (
-            <PaginationControls
-              currentPage={page}
-              totalPages={complaintsPage.totalPages}
-              onChange={setPage}
+          {viewMode === 'planner' ? (
+            <AdminRoutePlanner
+              complaints={complaintsPage.content || []}
+              onStatusUpdate={(complaintId, nextStatus) => {
+                setPendingStatusUpdate({ complaintId, status: nextStatus });
+              }}
             />
+          ) : (
+            <>
+              {/* Complaint Table */}
+              <AdminComplaintTable
+                complaints={complaintsPage.content || []}
+                isLoading={isLoading}
+                updatingComplaintId={updatingComplaintId}
+                onStatusChange={handleStatusChange}
+              />
+
+              {/* Pagination Controls */}
+              {complaintsPage.totalPages > 1 && (
+                <PaginationControls
+                  currentPage={page}
+                  totalPages={complaintsPage.totalPages}
+                  onChange={setPage}
+                />
+              )}
+            </>
           )}
 
           {/* Status Update Confirmation Modal */}

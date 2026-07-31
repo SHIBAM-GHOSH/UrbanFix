@@ -16,6 +16,10 @@ frontend/.vite/
 *.env
 !.env.example
 
+# Interview Prep & Personal Notes
+INTERVIEW_PREP.md
+interview_prep.md
+
 
 # IDEs & Editor Configuration
 .idea/
