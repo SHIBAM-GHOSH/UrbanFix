@@ -39,8 +39,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                                         .roles(user.getRole().name())
                                         .build();
 
-        return security_UserObj
-        ;
+        return security_UserObj;
         
     }
 }

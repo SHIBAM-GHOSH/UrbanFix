@@ -4,20 +4,25 @@ import { cleanParams } from '../utils/apiParams';
 export async function createComplaint(complaint, image) {
   const formData = new FormData();
 
-  formData.append(
-    'request',
-    new Blob([JSON.stringify(cleanParams(complaint))], { type: 'application/json' }),
-  );
+  const cleaned = cleanParams(complaint);
+
+  // Spring Boot ComplaintController uses @ModelAttribute CreateComplaintRequest request,
+  // which binds properties directly from individual form fields rather than a JSON blob part.
+  Object.entries(cleaned).forEach(([key, value]) => {
+    formData.append(key, value);
+  });
 
   if (image) {
     formData.append('image', image);
   }
 
   const { data } = await api.post('/complaints', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+    headers: { 'Content-Type': undefined },
   });
   return data;
 }
+
+
 
 export async function getMyComplaints(params) {
   const { data } = await api.get('/complaints/my', { params: cleanParams(params) });

@@ -61,6 +61,7 @@ public class SecurityConfig
                     // Configure endpoint authorization
                    .authorizeHttpRequests(auth -> auth.requestMatchers(
                                                                         "/api/auth/**",
+                                                                        "/uploads/**",
                                                                         "/v3/api-docs/**",
                                                                         "/swagger-ui/**",
                                                                         "/swagger-ui.html"
@@ -68,6 +69,7 @@ public class SecurityConfig
 
                                         .anyRequest().authenticated()
                                 )
+
                     
 
                     // Execute our JWT filter before Spring's authentication filter
