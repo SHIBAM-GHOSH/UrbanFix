@@ -28,6 +28,7 @@ import FilterListRoundedIcon from '@mui/icons-material/FilterListRounded';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import StatCard from '../../components/dashboard/StatCard';
 import EmptyState from '../../components/shared/EmptyState';
+import ComplaintOverviewMap from '../../components/maps/ComplaintOverviewMap';
 import {
   getAdminDashboardStatistics,
   getAdminComplaints,
@@ -465,6 +466,29 @@ function AdminDashboardPage() {
             </Grid>
           </Grid>
         </Box>
+
+        {/* Municipal Geographic Operations Map */}
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 3, md: 4 },
+            borderRadius: 3,
+            border: '1px solid',
+            borderColor: 'divider',
+          }}
+        >
+          <Stack spacing={2.5}>
+            <Box>
+              <Typography fontWeight={800} variant="h3">
+                Live Municipal Operations Map
+              </Typography>
+              <Typography color="text.secondary" variant="body2">
+                Geographic visualization of reported civic incidents across the city.
+              </Typography>
+            </Box>
+            <ComplaintOverviewMap complaints={recentComplaints} height={420} />
+          </Stack>
+        </Paper>
       </Stack>
     </Container>
   );

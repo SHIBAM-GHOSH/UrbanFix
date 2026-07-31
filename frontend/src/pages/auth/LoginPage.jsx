@@ -5,6 +5,7 @@ import {
   Box,
   Button,
   Link,
+  Paper,
   Stack,
   TextField,
   Typography,
@@ -55,6 +56,11 @@ function LoginPage() {
     }
   }
 
+  function handleDemoFill(email, password) {
+    setFormValues({ email, password });
+    setError('');
+  }
+
   return (
     <AuthLayout
       subtitle="Sign in to report, follow, and help resolve local civic issues."
@@ -67,6 +73,43 @@ function LoginPage() {
           )}
           {location.state?.message && <Alert severity="success">{location.state.message}</Alert>}
           {error && <Alert severity="error">{error}</Alert>}
+
+          {/* Quick Demo Access Box */}
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2,
+              borderRadius: 2,
+              bgcolor: 'background.default',
+              border: '1px dashed',
+              borderColor: 'primary.main',
+            }}
+          >
+            <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ display: 'block', mb: 1 }}>
+              ⚡ QUICK DEMO LOGIN (FOR REVIEWERS & DEMOS)
+            </Typography>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+              <Button
+                size="small"
+                variant="outlined"
+                color="primary"
+                onClick={() => handleDemoFill('armytech400@gmail.com', '4321')}
+                sx={{ textTransform: 'none', fontWeight: 600, flex: 1 }}
+              >
+                👤 Citizen Demo
+              </Button>
+              <Button
+                size="small"
+                variant="contained"
+                color="secondary"
+                onClick={() => handleDemoFill('admin@urbanfix.com', 'admin123')}
+                sx={{ textTransform: 'none', fontWeight: 600, flex: 1 }}
+              >
+                🛡️ Admin Demo
+              </Button>
+            </Stack>
+          </Paper>
+
           <TextField
             autoComplete="email"
             autoFocus
@@ -108,6 +151,7 @@ function LoginPage() {
     </AuthLayout>
   );
 }
+
 
 export default LoginPage;
 

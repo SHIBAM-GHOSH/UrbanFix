@@ -11,6 +11,12 @@ frontend/dist/
 frontend/.vite/
 *.log
 
+# Environment variables (Secrets)
+.env
+*.env
+!.env.example
+
+
 # IDEs & Editor Configuration
 .idea/
 *.iws

@@ -19,6 +19,7 @@ import ImageRoundedIcon from '@mui/icons-material/ImageRounded';
 import MyLocationRoundedIcon from '@mui/icons-material/MyLocationRounded';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import LocationPickerMap from '../maps/LocationPickerMap';
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
@@ -26,7 +27,7 @@ const CATEGORY_SUGGESTIONS = [
   'Roads & Traffic',
   'Sanitation & Waste',
   'Water Supply',
-  'Street Lighting',
+  'Electrical & Lighting',
   'Public Parks',
   'Noise & Pollution',
   'Other',
@@ -318,11 +319,11 @@ function ComplaintForm({
             />
           </Grid>
 
-          {/* Coordinates Header & Auto Geolocation */}
+          {/* Coordinates & Google Map Picker Header */}
           <Grid size={12}>
-            <Stack alignItems="center" direction="row" justifyContent="space-between" spacing={1}>
+            <Stack alignItems="center" direction="row" justifyContent="space-between" spacing={1} sx={{ mb: 1 }}>
               <Typography color="text.secondary" fontWeight={700} variant="caption">
-                GEOGRAPHIC COORDINATES (LAT / LONG)
+                GEOGRAPHIC LOCATION & GPS MAP PICKER
               </Typography>
               <Button
                 disabled={geoLoading}
@@ -334,6 +335,25 @@ function ComplaintForm({
                 {geoLoading ? 'Acquiring location...' : 'Use Current GPS'}
               </Button>
             </Stack>
+
+            <LocationPickerMap
+              latitude={values.latitude}
+              longitude={values.longitude}
+              onLocationSelect={({ latitude: newLat, longitude: newLng, address }) => {
+                setValues((prev) => ({
+                  ...prev,
+                  latitude: newLat,
+                  longitude: newLng,
+                  location: address || prev.location,
+                }));
+                setErrors((prev) => ({
+                  ...prev,
+                  latitude: '',
+                  longitude: '',
+                  location: address ? '' : prev.location,
+                }));
+              }}
+            />
           </Grid>
 
           <Grid size={{ xs: 12, sm: 6 }}>

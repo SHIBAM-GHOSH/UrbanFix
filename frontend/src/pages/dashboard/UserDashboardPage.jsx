@@ -23,6 +23,7 @@ import PersonOutlineRoundedIcon from '@mui/icons-material/PersonOutlineRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import StatCard from '../../components/dashboard/StatCard';
 import RecentComplaintItem from '../../components/dashboard/RecentComplaintItem';
+import ComplaintOverviewMap from '../../components/maps/ComplaintOverviewMap';
 import EmptyState from '../../components/shared/EmptyState';
 import { getMyComplaints } from '../../services/complaintService';
 import { getCurrentUser, getUserDashboardStatistics } from '../../services/userService';
@@ -286,6 +287,31 @@ function UserDashboardPage() {
             )}
           </Stack>
         </Paper>
+
+        {/* GPS Complaint Map Overview */}
+        {recentComplaints.length > 0 && (
+          <Paper
+            elevation={0}
+            sx={{
+              p: { xs: 3, md: 4 },
+              borderRadius: 3,
+              border: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
+            <Stack spacing={2.5}>
+              <Box>
+                <Typography fontWeight={800} variant="h3">
+                  Live GPS Complaint Map
+                </Typography>
+                <Typography color="text.secondary" variant="body2">
+                  Interactive map pin-pointing your reported issues and resolution status.
+                </Typography>
+              </Box>
+              <ComplaintOverviewMap complaints={recentComplaints} height={380} />
+            </Stack>
+          </Paper>
+        )}
       </Stack>
     </Container>
   );

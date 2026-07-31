@@ -25,6 +25,7 @@ import AppSnackbar from '../../components/shared/AppSnackbar';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import LoadingState from '../../components/shared/LoadingState';
 import { deleteComplaint, getComplaintById } from '../../services/complaintService';
+import ComplaintDetailMap from '../../components/maps/ComplaintDetailMap';
 
 function formatDate(value) {
   if (!value) return 'Not available';
@@ -171,7 +172,7 @@ function ComplaintDetailPage() {
 
               <Paper sx={{ border: '1px solid', borderColor: 'divider', p: { xs: 2.5, md: 3 } }}>
                 <Typography gutterBottom variant="h3">
-                  Location
+                  Location Map
                 </Typography>
                 <Stack spacing={2}>
                   <MetadataItem icon={<LocationOnOutlinedIcon />} label="Address or landmark" value={complaint.location} />
@@ -184,6 +185,15 @@ function ComplaintDetailPage() {
                         : 'Not available'
                     }
                   />
+                  <Box sx={{ mt: 1 }}>
+                    <ComplaintDetailMap
+                      latitude={complaint.latitude}
+                      longitude={complaint.longitude}
+                      title={complaint.title}
+                      status={complaint.status}
+                      height={260}
+                    />
+                  </Box>
                 </Stack>
               </Paper>
 

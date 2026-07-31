@@ -19,10 +19,13 @@ const AdminComplaintManagementPage = lazy(() => import('./pages/admin/AdminCompl
 const AdminAnalyticsPage = lazy(() => import('./pages/admin/AdminAnalyticsPage'));
 const NotFoundPage = lazy(() => import('./pages/shared/NotFoundPage'));
 
+import GoogleMapsProvider from './components/maps/GoogleMapsProvider';
+
 function App() {
   return (
     <BrowserRouter>
-      <Suspense fallback={<LoadingState message="Loading UrbanFix..." minHeight="70vh" />}>
+      <GoogleMapsProvider>
+        <Suspense fallback={<LoadingState message="Loading UrbanFix..." minHeight="70vh" />}>
         <Routes>
           <Route element={<Navigate replace to="/login" />} path="/" />
           <Route element={<LoginPage />} path="/login" />
@@ -45,6 +48,7 @@ function App() {
           <Route element={<NotFoundPage />} path="*" />
         </Routes>
       </Suspense>
+      </GoogleMapsProvider>
     </BrowserRouter>
   );
 }

@@ -1,16 +1,22 @@
 import { useEffect, useState } from 'react';
 import {
   Alert,
+  Box,
   Container,
   Grid,
   MenuItem,
   Skeleton,
   Stack,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material';
 import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import GridViewRoundedIcon from '@mui/icons-material/GridViewRounded';
+import MapOutlinedIcon from '@mui/icons-material/MapOutlined';
 import ComplaintCard from '../../components/complaints/ComplaintCard';
+import ComplaintOverviewMap from '../../components/maps/ComplaintOverviewMap';
 import EmptyState from '../../components/shared/EmptyState';
 import FilterPanel from '../../components/shared/FilterPanel';
 import PageHeader from '../../components/shared/PageHeader';
@@ -30,6 +36,7 @@ function ComplaintListPage() {
   const [appliedFilters, setAppliedFilters] = useState(initialFilters);
   const [page, setPage] = useState(0);
   const [error, setError] = useState('');
+  const [viewMode, setViewMode] = useState('grid');
 
   const isFiltered = Boolean(appliedFilters.keyword || appliedFilters.category || appliedFilters.status);
 
@@ -101,20 +108,45 @@ function ComplaintListPage() {
           </SearchToolbar>
         </FilterPanel>
 
+        {/* View mode toggle (Grid vs Map) */}
+        <Stack direction="row" justifyContent="flex-end" alignItems="center">
+          <ToggleButtonGroup
+            value={viewMode}
+            exclusive
+            onChange={(_, next) => next && setViewMode(next)}
+            size="small"
+            sx={{ bgcolor: 'background.paper' }}
+          >
+            <ToggleButton value="grid" aria-label="Grid View">
+              <GridViewRoundedIcon fontSize="small" sx={{ mr: 0.75 }} /> Grid View
+            </ToggleButton>
+            <ToggleButton value="map" aria-label="Map View">
+              <MapOutlinedIcon fontSize="small" sx={{ mr: 0.75 }} /> GPS Map View
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Stack>
+
         {error && <Alert severity="error">{error}</Alert>}
 
-        <Grid container spacing={2.5}>
-          {!complaintPage && !error && Array.from({ length: 6 }).map((_, index) => (
-            <Grid key={index} size={{ xs: 12, sm: 6, lg: 4 }}>
-              <Skeleton height={330} variant="rounded" sx={{ borderRadius: 3 }} />
-            </Grid>
-          ))}
-          {complaintPage?.content.map((complaint) => (
-            <Grid key={complaint.id} size={{ xs: 12, sm: 6, lg: 4 }}>
-              <ComplaintCard complaint={complaint} />
-            </Grid>
-          ))}
-        </Grid>
+        {viewMode === 'map' ? (
+          <ComplaintOverviewMap
+            complaints={complaintPage?.content || []}
+            height={520}
+          />
+        ) : (
+          <Grid container spacing={2.5}>
+            {!complaintPage && !error && Array.from({ length: 6 }).map((_, index) => (
+              <Grid key={index} size={{ xs: 12, sm: 6, lg: 4 }}>
+                <Skeleton height={330} variant="rounded" sx={{ borderRadius: 3 }} />
+              </Grid>
+            ))}
+            {complaintPage?.content.map((complaint) => (
+              <Grid key={complaint.id} size={{ xs: 12, sm: 6, lg: 4 }}>
+                <ComplaintCard complaint={complaint} />
+              </Grid>
+            ))}
+          </Grid>
+        )}
 
         {complaintPage?.empty && (
           <EmptyState

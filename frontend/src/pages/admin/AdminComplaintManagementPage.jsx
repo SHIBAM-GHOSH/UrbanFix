@@ -33,7 +33,7 @@ const QUICK_CATEGORIES = [
   'Roads & Traffic',
   'Sanitation & Waste',
   'Water Supply',
-  'Street Lighting',
+  'Electrical & Lighting',
   'Public Parks',
   'Noise & Pollution',
 ];
