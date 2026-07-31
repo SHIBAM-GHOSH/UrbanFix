@@ -4,7 +4,7 @@ UrbanFix is a production-grade full-stack civic engagement platform that enables
 
 The platform features a **React 19 + Material UI** frontend and a **Spring Boot 3 + MySQL** backend, empowering municipal response teams to triage incoming reports, track operational resolution status, and analyze citywide telemetry analytics.
 
-> **Project Status:** ✅ Version 1.0 Production-Ready (Full-Stack Completed)
+> **Project Status:** ✅ Version 1.0 Production-Ready (Full-Stack Monorepo Completed)
 
 ---
 
@@ -39,7 +39,7 @@ The platform features a **React 19 + Material UI** frontend and a **Spring Boot 
 
 ## 🏗️ Tech Stack
 
-### Frontend
+### Frontend (`frontend/`)
 - **Framework**: React 19
 - **Build Tool**: Vite 6
 - **UI Library**: Material UI (MUI v7), `@emotion/react`, `@emotion/styled`
@@ -47,7 +47,7 @@ The platform features a **React 19 + Material UI** frontend and a **Spring Boot 
 - **Data Visualization**: Recharts v2
 - **HTTP Client**: Axios (with custom request/response interceptors)
 
-### Backend
+### Backend (`backend/`)
 - **Core Framework**: Java 21, Spring Boot 3.4
 - **Security**: Spring Security, JWT (JJWT v0.12), BCrypt Password Encoder
 - **Database & ORM**: MySQL 8, Spring Data JPA, Hibernate
@@ -56,30 +56,29 @@ The platform features a **React 19 + Material UI** frontend and a **Spring Boot 
 
 ---
 
-## 📂 Project Architecture
+## 📂 Monorepo Directory Architecture
 
 ```text
-UrbanFix
-├── src/main/java/com/urbanfix/
-│   ├── config/             # Spring Security & Web MVC configurations
-│   ├── controller/         # REST API Controllers (Auth, Complaints, Admin, Users)
-│   ├── dto/                # Data Transfer Objects & Validation Schemas
-│   ├── entity/             # JPA Entities (User, Complaint)
-│   ├── enums/              # Domain Enums (Role, ComplaintStatus)
-│   ├── exception/          # Global Exception Handler (@ControllerAdvice)
-│   ├── repository/         # Spring Data JPA Repositories
-│   ├── security/          # JWT Filters & UserDetailsService
-│   └── service/            # Business Logic & File Storage Services
+UrbanFix/ (Root)
+├── backend/
+│   ├── src/                    # Spring Boot Application Source
+│   ├── .mvn/                   # Maven wrapper binaries
+│   ├── mvnw                    # Maven wrapper script (Linux/macOS)
+│   ├── mvnw.cmd                # Maven wrapper script (Windows)
+│   ├── pom.xml                 # Maven POM configuration
+│   ├── HELP.md                 # Spring Boot help guide
+│   └── uploads/                # Uploaded civic issue photos storage
 │
-└── urbanfix-frontend/
-    ├── src/
-    │   ├── components/     # Reusable UI Components (Admin, Auth, Complaints, Dashboard, Layout, Shared)
-    │   ├── context/        # React Context Providers (SnackbarContext)
-    │   ├── pages/          # Page Views (Admin, Auth, Complaints, Dashboard, Profile, Shared)
-    │   ├── services/       # Axios API Service Modules
-    │   └── utils/          # Helper Utilities (Auth, Formats, API Params)
-    ├── index.html
-    └── vite.config.js      # Rollup chunk splitting & proxy configuration
+├── frontend/
+│   ├── src/                    # React 19 + MUI Application Source
+│   ├── public/                 # Static assets & favicon
+│   ├── package.json            # npm dependencies & scripts
+│   ├── vite.config.js          # Vite build & proxy configuration
+│   └── openapi.json            # OpenAPI 3.1 specification reference
+│
+├── .gitignore                  # Root Git ignore rules (build artifacts, node_modules)
+├── AGENTS.md                   # AI & developer guidelines
+└── README.md                   # Complete platform documentation & setup guide
 ```
 
 ---
@@ -120,7 +119,7 @@ Create a MySQL database named `urbanfix`:
 CREATE DATABASE urbanfix;
 ```
 
-Update `src/main/resources/application.properties` with your database credentials:
+Update `backend/src/main/resources/application.properties` with your database credentials:
 ```properties
 spring.datasource.url=jdbc:mysql://localhost:3306/urbanfix?useSSL=false&serverTimezone=UTC
 spring.datasource.username=YOUR_MYSQL_USERNAME
@@ -131,16 +130,18 @@ jwt.expiration=86400000
 ```
 
 ### 2. Start Backend Server (Spring Boot)
-In the root directory (`urbanfix-backend`):
+In the `backend/` directory:
 ```bash
+cd backend
 ./mvnw spring-boot:run
 ```
 - Backend REST APIs run on: `http://localhost:5050`
 - Swagger API Documentation: `http://localhost:5050/swagger-ui.html`
 
 ### 3. Start Frontend Development Server (React + Vite)
-In the frontend directory (`urbanfix-frontend`):
+In the `frontend/` directory:
 ```bash
+cd frontend
 npm install
 npm run dev
 ```
