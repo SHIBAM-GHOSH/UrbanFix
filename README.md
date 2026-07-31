@@ -58,6 +58,115 @@ The platform features a **React 19 + Material UI** frontend and a **Spring Boot 
 
 ---
 
+## 🏛️ System Architecture
+
+UrbanFix follows an enterprise 3-tier web application architecture featuring stateless RESTful communication, declarative security filtering, client-side GIS mapping, and dynamic database querying.
+
+```mermaid
+flowchart TD
+    subgraph ClientTier ["🖥️ Frontend Client (React 19 + Vite)"]
+        UI["Material UI v7 Components"]
+        Router["React Router v7"]
+        MapsSDK["Google Maps JS SDK (@vis.gl)"]
+        Charts["Recharts Analytics Engine"]
+        AxiosClient["Axios HTTP Client (JWT Interceptor)"]
+    end
+
+    subgraph ExternalServices ["🌐 External Cloud Services"]
+        GoogleGeocoding["Google Geocoding API"]
+        GoogleMapsTile["Google Maps Platform Tiles"]
+    end
+
+    subgraph SecurityTier ["🛡️ Security & API Gateway Layer"]
+        CORS["CORS & Security Filter Chain"]
+        JWTFilter["JwtAuthenticationFilter"]
+        SpringSec["Spring Security Manager (BCrypt)"]
+    end
+
+    subgraph ApplicationTier ["⚙️ Backend Application (Spring Boot 3)"]
+        AuthController["AuthController"]
+        ComplaintController["ComplaintController"]
+        AdminController["AdminController"]
+        UserController["UserController"]
+        
+        AuthService["AuthServiceImpl"]
+        ComplaintService["ComplaintServiceImpl"]
+        FileService["FileStorageServiceImpl"]
+        UserService["UserServiceImpl"]
+        
+        Mapper["ComplaintMapper DTO Converter"]
+        GlobalException["GlobalExceptionHandler (@ControllerAdvice)"]
+    end
+
+    subgraph PersistenceTier ["💾 Data & Storage Layer"]
+        JPA["Spring Data JPA & Hibernate ORM"]
+        Database[("MySQL / H2 Database")]
+        LocalStorage["File System / Photo Uploads Directory"]
+    end
+
+    %% Client Interactions
+    UI --> Router
+    UI --> MapsSDK
+    UI --> Charts
+    UI --> AxiosClient
+
+    %% External Maps API Interactions
+    MapsSDK <-->|"Reverse Geocoding / Pin Drops"| GoogleGeocoding
+    MapsSDK <-->|"Tiles & Advanced Markers"| GoogleMapsTile
+
+    %% Client to Backend Communication
+    AxiosClient <-->|"HTTPS / REST (JSON + Bearer JWT)"| CORS
+    CORS --> JWTFilter
+    JWTFilter --> SpringSec
+
+    %% Controller Dispatching
+    SpringSec --> AuthController
+    SpringSec --> ComplaintController
+    SpringSec --> AdminController
+    SpringSec --> UserController
+
+    %% Controller to Service
+    AuthController --> AuthService
+    ComplaintController --> ComplaintService
+    AdminController --> ComplaintService
+    UserController --> UserService
+
+    %% Service to Storage & Mapper
+    ComplaintService --> Mapper
+    ComplaintService --> FileService
+    FileService --> LocalStorage
+    ComplaintService --> JPA
+    AuthService --> JPA
+    UserService --> JPA
+
+    %% Persistence to DB
+    JPA <--> Database
+```
+
+### 🔄 End-to-End Data & Request Lifecycle
+
+1. **Authentication & Authorization Pipeline**:
+   - User submits credentials (`email`, `password`) via React login form.
+   - Spring Security authenticates identity using BCrypt password verification.
+   - Upon validation, `JwtService` issues a signed JSON Web Token (JWT) with an expiration claim.
+   - React stores the JWT token locally; Axios request interceptors automatically append `Authorization: Bearer <token>` to every subsequent REST request.
+   - `JwtAuthenticationFilter` validates token signature on incoming requests and injects `SecurityContextHolder` credentials.
+
+2. **Civic Complaint Reporting & Geocoding Pipeline**:
+   - Citizen drops an interactive pin on `LocationPickerMap` or triggers browser GPS positioning.
+   - The frontend calls Google Geocoding API to resolve coordinates (`lat`, `lng`) into a formatted street address.
+   - Submitting the form sends a `multipart/form-data` payload (`JSON metadata` + `Photo Evidence File`).
+   - `FileStorageServiceImpl` validates image constraints (under 5MB, valid mime-type), persists it to disk/storage, and generates a URL.
+   - `ComplaintServiceImpl` transforms the DTO into a `Complaint` JPA entity, assigns initial `PENDING` status, and commits to MySQL via Hibernate.
+
+3. **Admin Telemetry & Operations Pipeline**:
+   - Municipal admins access `/admin/dashboard` protected by `@PreAuthorize("hasRole('ADMIN')")`.
+   - Spring Boot executes dynamic JPA `Specification` queries and custom aggregation repository methods (`COUNT(c.status)`, `GROUP BY category`).
+   - The frontend renders citywide geographic complaint pins via `ComplaintOverviewMap` (color-coded by resolution status) alongside Recharts telemetry graphs.
+   - Status transitions (`PENDING` → `IN_PROGRESS` → `RESOLVED`) execute optimistic database updates with updated timestamps.
+
+---
+
 ## 📊 Database Architecture
 
 ```mermaid
