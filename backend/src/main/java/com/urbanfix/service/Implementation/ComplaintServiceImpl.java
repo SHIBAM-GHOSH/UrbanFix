@@ -178,7 +178,6 @@ public class ComplaintServiceImpl implements ComplaintService
 
                         Complaint updatedComplaint = complaintRepository1.save(complaint);
                         return complaintMapper1.mapToResponse(updatedComplaint);
-                        
                 }
         @Override
         public
@@ -199,8 +198,11 @@ public class ComplaintServiceImpl implements ComplaintService
                                                         .orElseThrow(() -> 
                                                         new ResourceNotFoundException("User not found"));
                         
-                        //Check that the complaint belongs to the current user
-                        if (!complaint.getUser().getId().equals(currentUser.getId()))
+                        // Check that the complaint belongs to the current user OR the user is an ADMIN
+                        boolean isAdmin = currentUser.getRole() == com.urbanfix.enums.Role.ADMIN;
+                        boolean isOwner = complaint.getUser().getId().equals(currentUser.getId());
+
+                        if (!isAdmin && !isOwner)
                         {
                                 throw new InvalidOperationException(
                                                 "You are not allowed to delete this complaint."

@@ -23,6 +23,7 @@ import {
 import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 import ImageRoundedIcon from '@mui/icons-material/ImageRounded';
+import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import ComplaintStatusChip from '../complaints/ComplaintStatusChip';
 import EmptyState from '../shared/EmptyState';
 
@@ -35,7 +36,7 @@ function formatDate(dateString) {
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-function AdminComplaintTable({ complaints = [], isLoading, updatingComplaintId, onStatusChange }) {
+function AdminComplaintTable({ complaints = [], isLoading, updatingComplaintId, onStatusChange, onDelete }) {
   return (
     <TableContainer
       component={Paper}
@@ -100,43 +101,40 @@ function AdminComplaintTable({ complaints = [], isLoading, updatingComplaintId, 
                         flexShrink: 0,
                       }}
                     >
-                      <ImageRoundedIcon color="disabled" fontSize="small" />
+                      <ImageRoundedIcon fontSize="small" color="action" />
                     </Avatar>
 
-                    <Stack spacing={0.25} sx={{ minWidth: 0 }}>
+                    <Box>
                       <Typography
                         component={RouterLink}
                         to={`/complaints/${complaint.id}`}
+                        variant="subtitle2"
                         fontWeight={800}
-                        variant="body2"
-                        noWrap
                         sx={{
                           color: 'text.primary',
                           textDecoration: 'none',
-                          maxWidth: 280,
                           '&:hover': { color: 'primary.main', textDecoration: 'underline' },
                         }}
                       >
                         #{complaint.id} - {complaint.title}
                       </Typography>
-                      {complaint.location && (
-                        <Stack direction="row" alignItems="center" spacing={0.25} color="text.secondary">
-                          <PlaceRoundedIcon sx={{ fontSize: 13 }} color="action" />
-                          <Typography variant="caption" noWrap sx={{ maxWidth: 220 }}>
-                            {complaint.location}
-                          </Typography>
-                        </Stack>
-                      )}
-                    </Stack>
+
+                      <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.25 }}>
+                        <PlaceRoundedIcon sx={{ fontSize: 13, color: 'text.secondary' }} />
+                        <Typography variant="caption" color="text.secondary" noWrap sx={{ maxWidth: 220 }}>
+                          {complaint.location || 'Location Not Specified'}
+                        </Typography>
+                      </Stack>
+                    </Box>
                   </Stack>
                 </TableCell>
 
                 {/* Category */}
                 <TableCell>
                   <Chip
-                    color="primary"
                     label={complaint.category || 'General'}
                     size="small"
+                    color="primary"
                     variant="outlined"
                     sx={{ fontWeight: 700 }}
                   />
@@ -144,25 +142,25 @@ function AdminComplaintTable({ complaints = [], isLoading, updatingComplaintId, 
 
                 {/* Reporter */}
                 <TableCell>
-                  <Typography fontWeight={600} variant="body2">
-                    {complaint.userName || 'Citizen'}
+                  <Typography variant="body2" fontWeight={600}>
+                    {complaint.userName || 'Anonymous'}
                   </Typography>
                 </TableCell>
 
                 {/* Current Status Chip */}
                 <TableCell>
-                  <ComplaintStatusChip status={complaint.status} />
+                  <ComplaintStatusChip status={complaint.status} size="small" />
                 </TableCell>
 
                 {/* Date */}
                 <TableCell>
-                  <Typography color="text.secondary" variant="caption" fontWeight={600}>
+                  <Typography variant="body2" color="text.secondary">
                     {formatDate(complaint.createdAt)}
                   </Typography>
                 </TableCell>
 
                 {/* Status Selector Dropdown */}
-                <TableCell textAlign="center">
+                <TableCell>
                   <FormControl fullWidth size="small">
                     <Select
                       disabled={updatingComplaintId === complaint.id}
@@ -183,18 +181,32 @@ function AdminComplaintTable({ complaints = [], isLoading, updatingComplaintId, 
                   </FormControl>
                 </TableCell>
 
-                {/* Action Link */}
+                {/* Action Links */}
                 <TableCell align="right">
-                  <Tooltip title="View Complaint Details">
-                    <IconButton
-                      component={RouterLink}
-                      to={`/complaints/${complaint.id}`}
-                      size="small"
-                      color="primary"
-                    >
-                      <VisibilityRoundedIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
+                  <Stack direction="row" spacing={0.5} justifyContent="flex-end">
+                    <Tooltip title="View Complaint Details">
+                      <IconButton
+                        component={RouterLink}
+                        to={`/complaints/${complaint.id}`}
+                        size="small"
+                        color="primary"
+                      >
+                        <VisibilityRoundedIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+
+                    {onDelete && (
+                      <Tooltip title="Delete Complaint">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => onDelete(complaint)}
+                        >
+                          <DeleteOutlineRoundedIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                  </Stack>
                 </TableCell>
               </TableRow>
             ))

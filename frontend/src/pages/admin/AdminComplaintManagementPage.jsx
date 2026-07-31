@@ -30,7 +30,7 @@ import PaginationControls from '../../components/shared/PaginationControls';
 import PageHeader from '../../components/shared/PageHeader';
 import { useSnackbar } from '../../context/SnackbarContext';
 import { getAdminComplaints } from '../../services/adminService';
-import { updateComplaintStatus } from '../../services/complaintService';
+import { updateComplaintStatus, deleteComplaint } from '../../services/complaintService';
 
 const STATUS_OPTIONS = ['', 'PENDING', 'IN_PROGRESS', 'RESOLVED', 'REJECTED'];
 
@@ -57,6 +57,7 @@ function AdminComplaintManagementPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [updatingComplaintId, setUpdatingComplaintId] = useState(null);
   const [pendingStatusUpdate, setPendingStatusUpdate] = useState(null);
+  const [pendingDeleteComplaint, setPendingDeleteComplaint] = useState(null);
   const [error, setError] = useState('');
   const [viewMode, setViewMode] = useState('table');
 
@@ -175,6 +176,29 @@ function AdminComplaintManagementPage() {
       showError('Failed to update complaint status.');
     } finally {
       setUpdatingComplaintId(null);
+    }
+  }
+
+  async function confirmDeleteComplaint() {
+    if (!pendingDeleteComplaint) return;
+
+    const targetId = pendingDeleteComplaint.id;
+    setPendingDeleteComplaint(null);
+    setError('');
+
+    try {
+      await deleteComplaint(targetId);
+      setComplaintsPage((current) => ({
+        ...current,
+        totalElements: Math.max(0, (current.totalElements || 1) - 1),
+        content: (current.content || []).filter((item) => item.id !== targetId),
+      }));
+      showSuccess(`Complaint #${targetId} deleted successfully.`);
+    } catch (err) {
+      const errMsg =
+        err.response?.data?.message || err.response?.data?.error || 'Unable to delete complaint.';
+      setError(errMsg);
+      showError('Failed to delete complaint.');
     }
   }
 
@@ -321,6 +345,7 @@ function AdminComplaintManagementPage() {
                 isLoading={isLoading}
                 updatingComplaintId={updatingComplaintId}
                 onStatusChange={handleStatusChange}
+                onDelete={(complaint) => setPendingDeleteComplaint(complaint)}
               />
 
               {/* Pagination Controls */}
@@ -339,10 +364,20 @@ function AdminComplaintManagementPage() {
             confirmLabel="Confirm Update"
             description={`Are you sure you want to change the status of complaint #${pendingStatusUpdate?.complaintId} to ${pendingStatusUpdate?.status?.replace('_', ' ')}?`}
             isConfirming={Boolean(updatingComplaintId)}
+            onCancel={() => setPendingStatusUpdate(null)}
+            onConfirm={confirmStatusChange}
             open={Boolean(pendingStatusUpdate)}
             title="Update Complaint Status"
-            onClose={() => setPendingStatusUpdate(null)}
-            onConfirm={confirmStatusChange}
+          />
+
+          {/* Delete Complaint Confirmation Modal */}
+          <ConfirmDialog
+            confirmLabel="Delete Complaint"
+            description={`Are you sure you want to permanently delete complaint #${pendingDeleteComplaint?.id} - "${pendingDeleteComplaint?.title}"? This action cannot be undone.`}
+            onCancel={() => setPendingDeleteComplaint(null)}
+            onConfirm={confirmDeleteComplaint}
+            open={Boolean(pendingDeleteComplaint)}
+            title="Delete Complaint"
           />
         </Stack>
       </Container>
