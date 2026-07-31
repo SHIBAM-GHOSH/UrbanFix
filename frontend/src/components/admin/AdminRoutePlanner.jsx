@@ -133,6 +133,48 @@ function RoutePolylineOverlay({ path }) {
   return null;
 }
 
+// Calculate dynamic city HQ origin from complaints center, defaulting to Pune/City Center
+function getDynamicHQOrigin(complaints) {
+  const validCoords = (complaints || []).filter((item) => {
+    const lat = Number(item.latitude);
+    const lng = Number(item.longitude);
+    return !Number.isNaN(lat) && !Number.isNaN(lng) && (lat !== 0 || lng !== 0);
+  });
+
+  if (validCoords.length > 0) {
+    const sumLat = validCoords.reduce((acc, c) => acc + Number(c.latitude), 0);
+    const sumLng = validCoords.reduce((acc, c) => acc + Number(c.longitude), 0);
+    return {
+      lat: Number((sumLat / validCoords.length).toFixed(6)),
+      lng: Number((sumLng / validCoords.length).toFixed(6)),
+      label: 'Municipal HQ (City Dispatch Center)',
+    };
+  }
+
+  // Default fallback (Pune / Municipal Center)
+  return { lat: 18.5204, lng: 73.8567, label: 'Municipal HQ (City Center)' };
+}
+
+// Category matching helper supporting uppercase and alias categories
+function matchesCategory(complaintCategory, filterCategory) {
+  if (filterCategory === 'All Categories') return true;
+  if (!complaintCategory) return false;
+
+  const c = complaintCategory.toLowerCase().trim();
+  const f = filterCategory.toLowerCase().trim();
+
+  if (c === f) return true;
+
+  if (f.includes('road') && (c.includes('road') || c.includes('traffic'))) return true;
+  if (f.includes('sanitation') && (c.includes('sanitation') || c.includes('waste') || c.includes('sewage') || c.includes('drainage'))) return true;
+  if (f.includes('water') && c.includes('water')) return true;
+  if (f.includes('electrical') && (c.includes('electrical') || c.includes('lighting') || c.includes('streetlight'))) return true;
+  if (f.includes('park') && c.includes('park')) return true;
+  if (f.includes('noise') && c.includes('noise')) return true;
+
+  return false;
+}
+
 export default function AdminRoutePlanner({ complaints = [], onStatusUpdate }) {
   const isKeyAvailable = Boolean(GOOGLE_MAPS_API_KEY);
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
@@ -142,11 +184,14 @@ export default function AdminRoutePlanner({ complaints = [], onStatusUpdate }) {
   const [gpsLoading, setGpsLoading] = useState(false);
   const [selectedStop, setSelectedStop] = useState(null);
 
+  // Compute dynamic HQ origin based on complaints city center
+  const defaultHQ = useMemo(() => getDynamicHQOrigin(complaints), [complaints]);
+
   // Determine current origin (HQ or User GPS)
   const currentOrigin = useMemo(() => {
     if (originType === 'GPS' && gpsOrigin) return gpsOrigin;
-    return DEFAULT_HQ_ORIGIN;
-  }, [originType, gpsOrigin]);
+    return defaultHQ;
+  }, [originType, gpsOrigin, defaultHQ]);
 
   // Filter complaints based on user selections
   const filteredComplaints = useMemo(() => {
@@ -168,11 +213,10 @@ export default function AdminRoutePlanner({ complaints = [], onStatusUpdate }) {
       if (selectedStatus === 'PENDING' && item.status !== 'PENDING') return false;
       if (selectedStatus === 'IN_PROGRESS' && item.status !== 'IN_PROGRESS') return false;
       if (selectedStatus === 'ALL_ACTIVE' && item.status === 'RESOLVED') return false;
+      // ALL shows everything including resolved
 
       // Category Filter
-      if (selectedCategory !== 'All Categories' && item.category !== selectedCategory) return false;
-
-      return true;
+      return matchesCategory(item.category, selectedCategory);
     });
   }, [complaints, selectedCategory, selectedStatus]);
 
@@ -292,6 +336,7 @@ export default function AdminRoutePlanner({ complaints = [], onStatusUpdate }) {
               <MenuItem value="ALL_ACTIVE">All Active Issues (Pending & In Progress)</MenuItem>
               <MenuItem value="PENDING">Pending Triage Only</MenuItem>
               <MenuItem value="IN_PROGRESS">In Progress Work Orders Only</MenuItem>
+              <MenuItem value="ALL">All Complaints (Including Resolved)</MenuItem>
             </TextField>
           </Grid>
 

@@ -71,8 +71,8 @@ function AdminComplaintManagementPage() {
 
   const queryParams = useMemo(() => {
     const params = {
-      page,
-      size: 10,
+      page: viewMode === 'planner' ? 0 : page,
+      size: viewMode === 'planner' ? 100 : 10,
       sortBy: 'createdAt',
       sortDirection: 'desc',
     };
@@ -81,7 +81,7 @@ function AdminComplaintManagementPage() {
     if (appliedFilters.category.trim()) params.category = appliedFilters.category.trim();
 
     return params;
-  }, [appliedFilters, page]);
+  }, [appliedFilters, page, viewMode]);
 
   useEffect(() => {
     let isMounted = true;
