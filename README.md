@@ -18,9 +18,10 @@ The platform features a **React 19 + Material UI** frontend and a **Spring Boot 
 
 ### 📋 Complaint & Report Module
 - **Civic Issue Reporting**: Submit complaints with title, category, description, landmark address, GPS coordinates, and photo evidence.
-- **Automatic Geolocation**: One-click browser GPS auto-detection for precise coordinate plotting.
+- **Interactive Google GPS Maps**: Drag and drop pins on live Google Maps (`@vis.gl/react-google-maps`) with automatic reverse-geocoding into street addresses and one-click browser GPS positioning.
+- **Multi-Marker Operations Map**: Interactive map views on dashboards and list pages displaying complaint pins color-coded by resolution status (*Pending*, *In Progress*, *Resolved*) with interactive popup info windows.
 - **File Upload Service**: Multipart file storage supporting image evidence (`JPG`, `PNG`, `WebP`) with static resource serving.
-- **My Complaints Feed**: Personalized citizen dashboard with search bar, category chips, status filtering, and pagination.
+- **My Complaints Feed**: Personalized citizen dashboard with search bar, category chips, status filtering, and grid/map view toggle.
 - **Edit & Unsaved Changes Guard**: Unsaved change tracking with interactive exit confirmation dialogs.
 
 ### 📊 Admin Operations & Analytics Dashboard
@@ -43,6 +44,7 @@ The platform features a **React 19 + Material UI** frontend and a **Spring Boot 
 - **Framework**: React 19
 - **Build Tool**: Vite 6
 - **UI Library**: Material UI (MUI v7), `@emotion/react`, `@emotion/styled`
+- **Mapping & GPS**: `@vis.gl/react-google-maps` (Google Maps JS SDK + Advanced Markers + Geocoding API)
 - **Routing**: React Router DOM v7 (Route-level `React.lazy` code-splitting)
 - **Data Visualization**: Recharts v2
 - **HTTP Client**: Axios (with custom request/response interceptors)
@@ -53,6 +55,40 @@ The platform features a **React 19 + Material UI** frontend and a **Spring Boot 
 - **Database & ORM**: MySQL 8, Spring Data JPA, Hibernate
 - **API Documentation**: OpenAPI 3.1 / Swagger UI (`springdoc-openapi`)
 - **Build Tool**: Apache Maven
+
+---
+
+## 📊 Database Architecture
+
+```mermaid
+erDiagram
+    USERS ||--o{ COMPLAINTS : "reports"
+
+    USERS {
+        bigint id PK
+        string full_name
+        string email
+        string password
+        string phone
+        string role
+        timestamp created_at
+    }
+
+    COMPLAINTS {
+        bigint id PK
+        bigint user_id FK
+        string title
+        string description
+        string category
+        string location
+        double latitude
+        double longitude
+        string image_url
+        string status
+        timestamp created_at
+        timestamp updated_at
+    }
+```
 
 ---
 
