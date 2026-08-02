@@ -22,14 +22,13 @@ public class UserController {
 
     // Returns the profile belonging to the authenticated JWT subject.
     @GetMapping("/me")
-    @Operation(summary = "Get the authenticated user's profile")
+    
     public ResponseEntity<UserProfileResponse> getCurrentUserProfile() {
         return ResponseEntity.ok(userService.getCurrentUserProfile());
     }
 
     // Returns dashboard counts only for the authenticated user.
     @GetMapping("/me/dashboard")
-    @Operation(summary = "Get the authenticated user's dashboard statistics")
     public ResponseEntity<UserDashboardStatsResponse> getCurrentUserDashboardStatistics() {
         return ResponseEntity.ok(userService.getCurrentUserDashboardStatistics());
     }
