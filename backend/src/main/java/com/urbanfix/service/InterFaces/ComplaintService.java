@@ -4,7 +4,6 @@ import com.urbanfix.dto.CategoryAnalyticsResponse;
 import com.urbanfix.dto.ComplaintResponse;
 import com.urbanfix.dto.CreateComplaintRequest;
 import com.urbanfix.dto.DashboardStatsResponse;
-import com.urbanfix.dto.MonthlyComplaintAnalyticsResponse;
 import com.urbanfix.dto.UpdateComplaintRequest;
 import com.urbanfix.dto.UpdateComplaintStatusRequest;
 import com.urbanfix.enums.ComplaintStatus;
@@ -44,7 +43,4 @@ public interface ComplaintService {
 
     // Retrieve complaint count grouped by category for analytics
     List<CategoryAnalyticsResponse> getCategoryAnalytics();
-
-    // Retrieve monthly complaint counts for analytics charts
-    List<MonthlyComplaintAnalyticsResponse> getMonthlyComplaintAnalytics();
 }

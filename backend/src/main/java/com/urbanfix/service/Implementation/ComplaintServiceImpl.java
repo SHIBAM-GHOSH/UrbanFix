@@ -5,7 +5,6 @@ import com.urbanfix.dto.CategoryAnalyticsResponse;
 import com.urbanfix.dto.ComplaintResponse;
 import com.urbanfix.dto.CreateComplaintRequest;
 import com.urbanfix.dto.DashboardStatsResponse;
-import com.urbanfix.dto.MonthlyComplaintAnalyticsResponse;
 import com.urbanfix.dto.UpdateComplaintRequest;
 import com.urbanfix.dto.UpdateComplaintStatusRequest;
 import com.urbanfix.entity.Complaint;
@@ -166,11 +165,5 @@ public class ComplaintServiceImpl implements ComplaintService {
     @Override
     public List<CategoryAnalyticsResponse> getCategoryAnalytics() {
         return complaintRepository1.getCategoryAnalytics();
-    }
-
-    // Retrieve monthly complaint counts for analytics charts
-    @Override
-    public List<MonthlyComplaintAnalyticsResponse> getMonthlyComplaintAnalytics() {
-        return complaintRepository1.getMonthlyComplaintAnalytics();
     }
 }

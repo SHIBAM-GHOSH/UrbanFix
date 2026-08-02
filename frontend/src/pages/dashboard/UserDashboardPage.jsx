@@ -43,16 +43,16 @@ function UserDashboardPage() {
       setError('');
 
       try {
-        const [userData, statisticsData, complaintsPage] = await Promise.all([
+        const [userData, statisticsData, complaintsList] = await Promise.all([
           getCurrentUser(),
           getUserDashboardStatistics(),
-          getMyComplaints({ page: 0, size: 5, sortBy: 'createdAt', direction: 'desc' }),
+          getMyComplaints(),
         ]);
 
         if (isMounted) {
           setProfile(userData);
           setStatistics(statisticsData);
-          setRecentComplaints(complaintsPage?.content || []);
+          setRecentComplaints(Array.isArray(complaintsList) ? complaintsList.slice(0, 5) : complaintsList?.content || []);
         }
       } catch (requestError) {
         if (isMounted) {

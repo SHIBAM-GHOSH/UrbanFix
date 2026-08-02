@@ -3,7 +3,6 @@ package com.urbanfix.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -20,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.urbanfix.dto.ComplaintResponse;
 import com.urbanfix.dto.CreateComplaintRequest;
-import com.urbanfix.dto.DashboardStatsResponse;
 import com.urbanfix.dto.UpdateComplaintRequest;
 import com.urbanfix.dto.UpdateComplaintStatusRequest;
 import com.urbanfix.enums.ComplaintStatus;
@@ -104,15 +102,6 @@ public class ComplaintController {
             @PathVariable Long id,
             @Valid @RequestBody UpdateComplaintStatusRequest request) {
         ComplaintResponse response = complaintService1.updateComplaintStatus(id, request);
-        return ResponseEntity.ok(response);
-    }
-
-    // GET /api/complaints/dashboard : Retrieve aggregate statistics (admin only)
-    @GetMapping("/dashboard")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Get dashboard statistics")
-    public ResponseEntity<DashboardStatsResponse> getDashboardStatistics() {
-        DashboardStatsResponse response = complaintService1.getDashboardStatistics();
         return ResponseEntity.ok(response);
     }
 }

@@ -11,11 +11,6 @@ export async function getCategoryAnalytics() {
   return data;
 }
 
-export async function getMonthlyAnalytics() {
-  const { data } = await api.get('/admin/dashboard/monthly');
-  return data;
-}
-
 export async function getAdminComplaints(params) {
   const { data } = await api.get('/admin/complaints', { params: cleanParams(params) });
   return data;

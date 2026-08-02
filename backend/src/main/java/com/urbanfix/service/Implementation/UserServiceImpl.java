@@ -1,6 +1,6 @@
 package com.urbanfix.service.Implementation;
 
-import com.urbanfix.dto.UserDashboardStatsResponse;
+import com.urbanfix.dto.DashboardStatsResponse;
 import com.urbanfix.dto.UserProfileResponse;
 import com.urbanfix.entity.User;
 import com.urbanfix.enums.ComplaintStatus;
@@ -40,12 +40,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDashboardStatsResponse getCurrentUserDashboardStatistics() {
+    public DashboardStatsResponse getCurrentUserDashboardStatistics() {
         User user = getCurrentUser();
 
-        return new UserDashboardStatsResponse(
+        return new DashboardStatsResponse(
                 complaintRepository.countByUser(user),
                 complaintRepository.countByUserAndStatus(user, ComplaintStatus.PENDING),
+                complaintRepository.countByUserAndStatus(user, ComplaintStatus.IN_PROGRESS),
                 complaintRepository.countByUserAndStatus(user, ComplaintStatus.RESOLVED));
     }
 }

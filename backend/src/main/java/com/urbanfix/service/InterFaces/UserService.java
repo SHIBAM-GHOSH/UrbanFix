@@ -1,6 +1,6 @@
 package com.urbanfix.service.InterFaces;
 
-import com.urbanfix.dto.UserDashboardStatsResponse;
+import com.urbanfix.dto.DashboardStatsResponse;
 import com.urbanfix.dto.UserProfileResponse;
 
 public interface UserService {
@@ -9,5 +9,5 @@ public interface UserService {
     UserProfileResponse getCurrentUserProfile();
 
     // Returns complaint counts for the authenticated user's dashboard.
-    UserDashboardStatsResponse getCurrentUserDashboardStatistics();
+    DashboardStatsResponse getCurrentUserDashboardStatistics();
 }
