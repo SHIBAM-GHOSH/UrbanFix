@@ -67,16 +67,16 @@ function AdminDashboardPage() {
       setError('');
 
       try {
-        const [statsData, categoryData, complaintsPage] = await Promise.all([
+        const [statsData, categoryData, complaintsData] = await Promise.all([
           getAdminDashboardStatistics(),
           getCategoryAnalytics(),
-          getAdminComplaints({ page: 0, size: 5, sortBy: 'createdAt', sortDirection: 'desc' }),
+          getAdminComplaints(),
         ]);
 
         if (isMounted) {
           setDashboard(statsData);
           setCategories(categoryData || []);
-          setRecentComplaints(complaintsPage?.content || []);
+          setRecentComplaints(Array.isArray(complaintsData) ? complaintsData : complaintsData?.content || []);
         }
       } catch (requestError) {
         if (isMounted) {
@@ -174,14 +174,6 @@ function AdminDashboardPage() {
                 >
                   Manage Complaints
                 </Button>
-                <Button
-                  component={RouterLink}
-                  startIcon={<BarChartRoundedIcon />}
-                  to="/admin/analytics"
-                  variant="outlined"
-                >
-                  Analytics
-                </Button>
               </Stack>
             </Stack>
 
@@ -189,7 +181,6 @@ function AdminDashboardPage() {
             <Tabs value={0} indicatorColor="primary" textColor="primary" sx={{ borderBottom: 1, borderColor: 'divider', pt: 1 }}>
               <Tab label="Overview" component={RouterLink} to="/admin" sx={{ fontWeight: 800 }} />
               <Tab label="Complaint Queue" component={RouterLink} to="/admin/complaints" sx={{ fontWeight: 700 }} />
-              <Tab label="Category Analytics" component={RouterLink} to="/admin/analytics" sx={{ fontWeight: 700 }} />
             </Tabs>
           </Stack>
         </Paper>

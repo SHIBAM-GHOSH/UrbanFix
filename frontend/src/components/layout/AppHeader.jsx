@@ -43,7 +43,6 @@ const userLinks = [
 const adminLinks = [
   { icon: <AdminPanelSettingsRoundedIcon />, label: 'Admin Triage', to: '/admin' },
   { icon: <AssignmentRoundedIcon />, label: 'Manage Queue', to: '/admin/complaints' },
-  { icon: <BarChartRoundedIcon />, label: 'Analytics', to: '/admin/analytics' },
 ];
 
 function getInitials(name) {

@@ -16,7 +16,6 @@ const EditComplaintPage = lazy(() => import('./pages/complaints/EditComplaintPag
 const ProfilePage = lazy(() => import('./pages/profile/ProfilePage'));
 const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'));
 const AdminComplaintManagementPage = lazy(() => import('./pages/admin/AdminComplaintManagementPage'));
-const AdminAnalyticsPage = lazy(() => import('./pages/admin/AdminAnalyticsPage'));
 const NotFoundPage = lazy(() => import('./pages/shared/NotFoundPage'));
 
 import GoogleMapsProvider from './components/maps/GoogleMapsProvider';
@@ -41,7 +40,6 @@ function App() {
               <Route element={<AdminRoute />}>
                 <Route element={<AdminDashboardPage />} path="/admin" />
                 <Route element={<AdminComplaintManagementPage />} path="/admin/complaints" />
-                <Route element={<AdminAnalyticsPage />} path="/admin/analytics" />
               </Route>
             </Route>
           </Route>
@@ -54,5 +52,3 @@ function App() {
 }
 
 export default App;
-
-
