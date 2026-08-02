@@ -1,0 +1,17 @@
+{
+    "token": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJyYWh1bEBleGFtcGxlLmNvbSIsImlhdCI6MTc4NTE1ODUxMywiZXhwIjoxNzg1MjQ0OTEzfQ.vLsmjEOv3k5AA9d5D6Dky3fs-cmFHnwbKvKiIRAbB60SGs94ISOClmIUBeTsnCRq"
+}
+
+
+
+UPDATE users
+SET role = 'ADMIN'
+WHERE email = 'shibam@gmail.com';
+
+{
+    "token": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbkB1cmJhbmZpeC5jb20iLCJpYXQiOjE3ODU1MDU2NzQsImV4cCI6MTc4NTU5MjA3NH0.hMsgnFROAlAEeXd7gXeQGjhX5LbhlkicRbv_OV9ZIrFDPKSYGXnbI-zX8mSs-acr"
+}
+
+
+google map api
+AIzaSyDNheqbRLVlvh55sP6Uq3tgyOexA1AE-wU

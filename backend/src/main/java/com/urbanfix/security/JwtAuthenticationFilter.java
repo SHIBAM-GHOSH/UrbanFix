@@ -15,20 +15,14 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.security.core.Authentication;
 
 import java.io.IOException;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService1;
     private final CustomUserDetailsService customUserDetailsService1;
-
-    public JwtAuthenticationFilter(
-            JwtService jwtService1,
-            CustomUserDetailsService customUserDetailsService1) {
-
-        this.jwtService1 = jwtService1;
-        this.customUserDetailsService1 = customUserDetailsService1;
-    }
 
     @Override
     protected void doFilterInternal( HttpServletRequest request,HttpServletResponse response,

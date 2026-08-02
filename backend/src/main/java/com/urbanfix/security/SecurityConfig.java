@@ -25,10 +25,6 @@ public class SecurityConfig
 {   
     private final JwtAuthenticationFilter jwtAuthenticationFilter1;
 
-//     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter1) {
-
-//     this.jwtAuthenticationFilter1 = jwtAuthenticationFilter1;
-// }
 
     // Password Encoder Bean
     @Bean

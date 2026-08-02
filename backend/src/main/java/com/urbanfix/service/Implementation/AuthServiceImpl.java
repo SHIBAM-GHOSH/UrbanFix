@@ -23,21 +23,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-    //the below objects are automatically put into AuthService Object when its created
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
-    private final CustomUserDetailsService customUserDetailsService1;
 
-    // public AuthServiceImpl(UserRepository userRepository,PasswordEncoder passwordEncoder,
-    //                         AuthenticationManager authenticationManager) 
-    //     {
-
-    //         this.userRepository = userRepository;
-    //         this.passwordEncoder = passwordEncoder;
-    //         this.authenticationManager = authenticationManager;
-    //     }
 
     @Override
     public String register(RegisterRequest request) {
@@ -47,40 +36,40 @@ public class AuthServiceImpl implements AuthService {
         }
 
         User user = new User();
-
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
-
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-
         user.setRole(Role.USER);
-
         userRepository.save(user);
 
         return "User Registered Successfully";
     }
 
     @Override
-    public LoginResponse login(LoginRequest request) 
+        public LoginResponse login(LoginRequest request) 
         {
-            // Authenticate the user
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            request.getEmail(),
-                            request.getPassword()
-                    )
-            );
+            // 1. Fetch user from database by email
+            User user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new RuntimeException("Invalid email or password"));
 
-            // Load authenticated user's details
-            UserDetails userDetails = customUserDetailsService1.loadUserByUsername(request.getEmail());
+            // 2. Verify entered raw password against hashed password in database
+            if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+                throw new RuntimeException("Invalid email or password");
+            }
 
-            // Generate JWT
+            // 3. Convert 'user' to Spring's UserDetails directly (No 2nd database query!)
+            UserDetails userDetails = org.springframework.security.core.userdetails.User
+                    .withUsername(user.getEmail())
+                    .password(user.getPassword())
+                    .roles(user.getRole().name())
+                    .build();
+
+            // 4. Generate JWT token
             String jwt = jwtService.generateToken(userDetails);
 
-            // Return JWT to client
+            // 5. Return JWT response to client
             return new LoginResponse(jwt);
+    }
 
-            
-        }
 }
 
