@@ -26,7 +26,6 @@ import RouteRoundedIcon from '@mui/icons-material/RouteRounded';
 import AdminComplaintTable from '../../components/admin/AdminComplaintTable';
 import AdminRoutePlanner from '../../components/admin/AdminRoutePlanner';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
-import PaginationControls from '../../components/shared/PaginationControls';
 import PageHeader from '../../components/shared/PageHeader';
 import { useSnackbar } from '../../context/SnackbarContext';
 import { getAdminComplaints } from '../../services/adminService';
@@ -52,8 +51,7 @@ function AdminComplaintManagementPage() {
 
   const [filters, setFilters] = useState({ status: initialStatus, category: initialCategory });
   const [appliedFilters, setAppliedFilters] = useState({ status: initialStatus, category: initialCategory });
-  const [complaintsPage, setComplaintsPage] = useState({ content: [], totalPages: 0, number: 0, totalElements: 0 });
-  const [page, setPage] = useState(0);
+  const [complaints, setComplaints] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [updatingComplaintId, setUpdatingComplaintId] = useState(null);
   const [pendingStatusUpdate, setPendingStatusUpdate] = useState(null);
@@ -67,22 +65,14 @@ function AdminComplaintManagementPage() {
     const urlCategory = searchParams.get('category') || '';
     setFilters({ status: urlStatus, category: urlCategory });
     setAppliedFilters({ status: urlStatus, category: urlCategory });
-    setPage(0);
   }, [searchParams]);
 
   const queryParams = useMemo(() => {
-    const params = {
-      page: viewMode === 'planner' ? 0 : page,
-      size: viewMode === 'planner' ? 100 : 10,
-      sortBy: 'createdAt',
-      sortDirection: 'desc',
-    };
-
+    const params = {};
     if (appliedFilters.status) params.status = appliedFilters.status;
     if (appliedFilters.category.trim()) params.category = appliedFilters.category.trim();
-
     return params;
-  }, [appliedFilters, page, viewMode]);
+  }, [appliedFilters]);
 
   useEffect(() => {
     let isMounted = true;
@@ -94,7 +84,7 @@ function AdminComplaintManagementPage() {
       try {
         const data = await getAdminComplaints(queryParams);
         if (isMounted) {
-          setComplaintsPage(data || { content: [], totalPages: 0, number: 0, totalElements: 0 });
+          setComplaints(data || []);
         }
       } catch (err) {
         if (isMounted) {
@@ -116,9 +106,8 @@ function AdminComplaintManagementPage() {
     };
   }, [queryParams]);
 
-  function handleApplyFilters(event) {
-    if (event) event.preventDefault();
-    setPage(0);
+  function handleFilterSubmit(event) {
+    event.preventDefault();
     setAppliedFilters(filters);
 
     const nextParams = {};
@@ -127,16 +116,15 @@ function AdminComplaintManagementPage() {
     setSearchParams(nextParams);
   }
 
-  function handleQuickCategoryClick(cat) {
-    const nextCategory = filters.category.toLowerCase() === cat.toLowerCase() ? '' : cat;
-    const nextFilters = { ...filters, category: nextCategory };
-    setFilters(nextFilters);
-    setAppliedFilters(nextFilters);
-    setPage(0);
+  function handleQuickCategoryClick(categoryName) {
+    const nextCategory = filters.category === categoryName ? '' : categoryName;
+    const updated = { ...filters, category: nextCategory };
+    setFilters(updated);
+    setAppliedFilters(updated);
 
     const nextParams = {};
-    if (nextFilters.status) nextParams.status = nextFilters.status;
-    if (nextFilters.category.trim()) nextParams.category = nextFilters.category.trim();
+    if (updated.status) nextParams.status = updated.status;
+    if (updated.category.trim()) nextParams.category = updated.category.trim();
     setSearchParams(nextParams);
   }
 
@@ -144,7 +132,6 @@ function AdminComplaintManagementPage() {
     const cleared = { status: '', category: '' };
     setFilters(cleared);
     setAppliedFilters(cleared);
-    setPage(0);
     setSearchParams({});
   }
 
@@ -162,12 +149,9 @@ function AdminComplaintManagementPage() {
 
     try {
       await updateComplaintStatus(complaintId, status);
-      setComplaintsPage((current) => ({
-        ...current,
-        content: (current.content || []).map((complaint) =>
-          complaint.id === complaintId ? { ...complaint, status } : complaint,
-        ),
-      }));
+      setComplaints((current) =>
+        current.map((c) => (c.id === complaintId ? { ...c, status } : c)),
+      );
       showSuccess(`Complaint #${complaintId} status updated to ${status.replace('_', ' ')}.`);
     } catch (err) {
       const errMsg =
@@ -188,11 +172,7 @@ function AdminComplaintManagementPage() {
 
     try {
       await deleteComplaint(targetId);
-      setComplaintsPage((current) => ({
-        ...current,
-        totalElements: Math.max(0, (current.totalElements || 1) - 1),
-        content: (current.content || []).filter((item) => item.id !== targetId),
-      }));
+      setComplaints((current) => current.filter((c) => c.id !== targetId));
       showSuccess(`Complaint #${targetId} deleted successfully.`);
     } catch (err) {
       const errMsg =
@@ -218,100 +198,99 @@ function AdminComplaintManagementPage() {
           <Paper
             component="form"
             elevation={0}
-            onSubmit={handleApplyFilters}
+            onSubmit={handleFilterSubmit}
             sx={{
+              p: { xs: 2, md: 2.5 },
+              borderRadius: 3,
               border: '1px solid',
               borderColor: 'divider',
-              borderRadius: 3,
-              p: { xs: 2.5, md: 3 },
             }}
           >
-            <Stack spacing={2.5}>
-              <Grid container spacing={2}>
-                {/* Status Dropdown */}
-                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Stack spacing={2}>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <FilterListRoundedIcon color="action" fontSize="small" />
+                <Typography variant="subtitle2" fontWeight={700}>
+                  Filter Options
+                </Typography>
+              </Stack>
+
+              <Grid container spacing={2} alignItems="center">
+                <Grid size={{ xs: 12, sm: 6, md: 5 }}>
+                  <TextField
+                    fullWidth
+                    label="Filter by Category"
+                    placeholder="e.g. Sanitation, Roads, Water..."
+                    size="small"
+                    value={filters.category}
+                    onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                   <FormControl fullWidth size="small">
-                    <InputLabel>Filter by Status</InputLabel>
+                    <InputLabel id="admin-status-filter-label">Status Filter</InputLabel>
                     <Select
-                      label="Filter by Status"
+                      label="Status Filter"
+                      labelId="admin-status-filter-label"
                       value={filters.status}
-                      onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))}
-                      sx={{ borderRadius: 2 }}
+                      onChange={(e) => setFilters({ ...filters, status: e.target.value })}
                     >
-                      {STATUS_OPTIONS.map((st) => (
-                        <MenuItem key={st || 'ALL'} value={st}>
-                          {st ? st.replace('_', ' ') : 'All Statuses'}
-                        </MenuItem>
-                      ))}
+                      <MenuItem value="">All Statuses</MenuItem>
+                      <MenuItem value="PENDING">Pending</MenuItem>
+                      <MenuItem value="IN_PROGRESS">In Progress</MenuItem>
+                      <MenuItem value="RESOLVED">Resolved</MenuItem>
+                      <MenuItem value="REJECTED">Rejected</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
 
-                {/* Category Input */}
-                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                  <TextField
-                    fullWidth
-                    label="Category / Keyword"
-                    placeholder="Roads, Water, Sanitation..."
-                    size="small"
-                    value={filters.category}
-                    onChange={(e) => setFilters((prev) => ({ ...prev, category: e.target.value }))}
-                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                  />
-                </Grid>
-
-                {/* Submit & Reset Buttons */}
-                <Grid size={{ xs: 12, md: 5 }}>
-                  <Stack direction="row" spacing={1.5}>
+                <Grid size={{ xs: 12, md: 3 }}>
+                  <Stack direction="row" spacing={1}>
                     <Button
                       fullWidth
-                      startIcon={<FilterListRoundedIcon />}
+                      startIcon={<ManageSearchRoundedIcon />}
                       type="submit"
                       variant="contained"
-                      sx={{ borderRadius: 2 }}
                     >
                       Apply Filters
                     </Button>
+
                     <Button
-                      fullWidth
+                      color="inherit"
                       onClick={handleResetFilters}
-                      startIcon={<RestartAltRoundedIcon />}
-                      variant="outlined"
-                      sx={{ borderRadius: 2 }}
+                      sx={{ minWidth: 40, px: 1 }}
+                      title="Reset filters"
                     >
-                      Reset
+                      <RestartAltRoundedIcon fontSize="small" />
                     </Button>
                   </Stack>
                 </Grid>
               </Grid>
 
               {/* Quick Category Chips */}
-              <Stack direction="row" alignItems="center" flexWrap="wrap" gap={1}>
-                <Typography color="text.secondary" variant="caption" sx={{ fontWeight: 700, mr: 0.5 }}>
-                  Quick Category Filters:
-                </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, pt: 0.5 }}>
                 {QUICK_CATEGORIES.map((cat) => {
                   const isSelected = filters.category.toLowerCase() === cat.toLowerCase();
                   return (
                     <Chip
                       key={cat}
+                      clickable
                       color={isSelected ? 'primary' : 'default'}
                       label={cat}
-                      onClick={() => handleQuickCategoryClick(cat)}
                       size="small"
                       variant={isSelected ? 'filled' : 'outlined'}
-                      sx={{ cursor: 'pointer', fontWeight: 600 }}
+                      onClick={() => handleQuickCategoryClick(cat)}
                     />
                   );
                 })}
-              </Stack>
+              </Box>
             </Stack>
           </Paper>
 
-          {/* Results Summary Header & View Toggle */}
-          <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" spacing={1.5}>
-            <Typography color="text.secondary" variant="body2" fontWeight={700}>
-              Showing {complaintsPage.content?.length || 0} of {complaintsPage.totalElements || 0} complaints
+          {/* View mode toggle (Table vs Route Planner) */}
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Typography variant="body2" color="text.secondary">
+              Showing <strong>{complaints.length}</strong> complaints
             </Typography>
 
             <ToggleButtonGroup
@@ -332,31 +311,19 @@ function AdminComplaintManagementPage() {
 
           {viewMode === 'planner' ? (
             <AdminRoutePlanner
-              complaints={complaintsPage.content || []}
+              complaints={complaints}
               onStatusUpdate={(complaintId, nextStatus) => {
                 setPendingStatusUpdate({ complaintId, status: nextStatus });
               }}
             />
           ) : (
-            <>
-              {/* Complaint Table */}
-              <AdminComplaintTable
-                complaints={complaintsPage.content || []}
-                isLoading={isLoading}
-                updatingComplaintId={updatingComplaintId}
-                onStatusChange={handleStatusChange}
-                onDelete={(complaint) => setPendingDeleteComplaint(complaint)}
-              />
-
-              {/* Pagination Controls */}
-              {complaintsPage.totalPages > 1 && (
-                <PaginationControls
-                  currentPage={page}
-                  totalPages={complaintsPage.totalPages}
-                  onChange={setPage}
-                />
-              )}
-            </>
+            <AdminComplaintTable
+              complaints={complaints}
+              isLoading={isLoading}
+              updatingComplaintId={updatingComplaintId}
+              onStatusChange={handleStatusChange}
+              onDelete={(complaint) => setPendingDeleteComplaint(complaint)}
+            />
           )}
 
           {/* Status Update Confirmation Modal */}
@@ -386,5 +353,3 @@ function AdminComplaintManagementPage() {
 }
 
 export default AdminComplaintManagementPage;
-
-

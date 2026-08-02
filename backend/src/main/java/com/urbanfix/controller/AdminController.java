@@ -7,16 +7,10 @@ import com.urbanfix.dto.MonthlyComplaintAnalyticsResponse;
 import com.urbanfix.enums.ComplaintStatus;
 import com.urbanfix.service.InterFaces.ComplaintService;
 
-import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
-//import com.urbanfix.entity.ComplaintCategory;
-//import com.urbanfix.entity.ComplaintStatus;
-
-
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,81 +25,38 @@ public class AdminController {
 
     private final ComplaintService complaintService1;
 
-    // Retrieve all complaints (Admin only)
+    // GET /api/admin/complaints : Retrieve all complaints for admin management view with optional filters
     @GetMapping("/complaints")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<ComplaintResponse>> getAllComplaints(
+    public ResponseEntity<List<ComplaintResponse>> getAllComplaints(
+            @RequestParam(required = false) ComplaintStatus status,
+            @RequestParam(required = false) String category) {
 
-
-            @RequestParam(required = false)
-            ComplaintStatus status,
-
-            @RequestParam(required = false)
-            String  category,
-
-            @RequestParam(defaultValue = "0")
-            @Min(0)
-            int page,
-
-            @RequestParam(defaultValue = "10")
-            @Min(1)
-            int size,
-
-            @RequestParam(defaultValue = "createdAt")
-            String sortBy,
-
-            @RequestParam(defaultValue = "desc")
-            String sortDirection) {
-
-        Page<ComplaintResponse> response =
-                complaintService1.getAllComplaintsForAdmin(
-                        status, category,
-                        page,
-                        size,
-                        sortBy,
-                        sortDirection
-                );
-
+        List<ComplaintResponse> response = complaintService1.getAllComplaintsForAdmin(status, category);
         return ResponseEntity.ok(response);
     }
 
-        /**
-     * Retrieves dashboard statistics.
-     * Accessible only by administrators.
-     */
+    // GET /api/admin/dashboard : Retrieve high-level dashboard metrics (Total, Pending, In Progress, Resolved counts)
     @GetMapping("/dashboard")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<DashboardStatsResponse> getDashboardStatistics() 
-    {
-            DashboardStatsResponse response =
-                    complaintService1.getDashboardStatistics();
-            return ResponseEntity.ok(response);
+    public ResponseEntity<DashboardStatsResponse> getDashboardStatistics() {
+        DashboardStatsResponse response = complaintService1.getDashboardStatistics();
+        return ResponseEntity.ok(response);
     }
-        /**
-     * Retrieves complaint count grouped by category.
-     * Accessible only by administrators.
-     */
+
+    // GET /api/admin/dashboard/categories : Retrieve complaint count grouped by category for analytics
     @GetMapping("/dashboard/categories")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<CategoryAnalyticsResponse>> getCategoryAnalytics() 
-        {
+    public ResponseEntity<List<CategoryAnalyticsResponse>> getCategoryAnalytics() {
+        List<CategoryAnalyticsResponse> response = complaintService1.getCategoryAnalytics();
+        return ResponseEntity.ok(response);
+    }
 
-            List<CategoryAnalyticsResponse> response =
-                    complaintService1.getCategoryAnalytics();
-
-            return ResponseEntity.ok(response);
-        }
-
-                /**
-         * Retrieves complaint count grouped by year and month.
-         * Accessible only by administrators.
-         */
-        @GetMapping("/dashboard/monthly")
-        @PreAuthorize("hasRole('ADMIN')")
-        public ResponseEntity<List<MonthlyComplaintAnalyticsResponse>> getMonthlyComplaintAnalytics() 
-        {
-
-                List<MonthlyComplaintAnalyticsResponse> response =complaintService1.getMonthlyComplaintAnalytics();
-                return ResponseEntity.ok(response);
-        }
+    // GET /api/admin/dashboard/monthly : Retrieve monthly complaint counts for analytics charts
+    @GetMapping("/dashboard/monthly")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<MonthlyComplaintAnalyticsResponse>> getMonthlyComplaintAnalytics() {
+        List<MonthlyComplaintAnalyticsResponse> response = complaintService1.getMonthlyComplaintAnalytics();
+        return ResponseEntity.ok(response);
+    }
 }

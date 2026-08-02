@@ -9,60 +9,42 @@ import com.urbanfix.dto.UpdateComplaintRequest;
 import com.urbanfix.dto.UpdateComplaintStatusRequest;
 import com.urbanfix.enums.ComplaintStatus;
 
-import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 public interface ComplaintService {
 
-        // Create a new complaint
-        ComplaintResponse createComplaint(CreateComplaintRequest request, MultipartFile image);
+    // Create a new civic complaint with optional image upload
+    ComplaintResponse createComplaint(CreateComplaintRequest request, MultipartFile image);
 
-        ComplaintResponse getComplaintById(Long complaintId);
-        ComplaintResponse updateComplaint(Long complaintId, UpdateComplaintRequest request);
-        void deleteComplaint(Long complaintId);
+    // Retrieve a single complaint by its unique ID
+    ComplaintResponse getComplaintById(Long complaintId);
 
-        // USER ROLE: Returns complaints created ONLY by the currently authenticated user (for "My Complaints" dashboard).
-        Page<ComplaintResponse> getMyComplaints(
-                        int page,
-                        int size,
-                        String sortBy,
-                        String direction,
-                        ComplaintStatus status,
-                        String category,
-                        String keyword);
+    // Update details of an existing complaint (allowed only for the creator)
+    ComplaintResponse updateComplaint(Long complaintId, UpdateComplaintRequest request);
 
-        // GLOBAL / COMMUNITY ROLE: Returns complaints submitted by ALL users across the system (for public/community feed).
-        Page<ComplaintResponse> getAllComplaints(
-                        int page,
-                        int size,
-                        String sortBy,
-                        String direction,
-                        ComplaintStatus status,
-                        String keyword);
+    // Delete a complaint by ID (allowed for creator or admin)
+    void deleteComplaint(Long complaintId);
 
-        Page<ComplaintResponse> searchComplaints(String keyword, int page, int size);
+    // Retrieve all complaints created by the logged-in user with optional status and category filters
+    List<ComplaintResponse> getMyComplaints(ComplaintStatus status, String category);
 
-        // Update the status of an existing complaint
-        ComplaintResponse updateComplaintStatus(Long complaintId, UpdateComplaintStatusRequest request);
+    // Retrieve all complaints across the system with optional status and category filters
+    List<ComplaintResponse> getAllComplaints(ComplaintStatus status, String category);
 
-        // Retrieve all complaints for the admin dashboard
-        Page<ComplaintResponse> getAllComplaintsForAdmin(
-                        ComplaintStatus status,
-                        String category,
-                        int page,
-                        int size,
-                        String sortBy,
-                        String sortDirection);
+    // Update complaint status (Pending, In Progress, Resolved, Rejected)
+    ComplaintResponse updateComplaintStatus(Long complaintId, UpdateComplaintStatusRequest request);
 
-        // Retrieve complaint statistics for the admin dashboard
-        DashboardStatsResponse getDashboardStatistics();
+    // Retrieve all complaints for admin dashboard with optional status and category filters
+    List<ComplaintResponse> getAllComplaintsForAdmin(ComplaintStatus status, String category);
 
-        /**
-         * Retrieves complaint count grouped by category.
-         */
-        List<CategoryAnalyticsResponse> getCategoryAnalytics();
-        List<MonthlyComplaintAnalyticsResponse> getMonthlyComplaintAnalytics();
+    // Retrieve high-level complaint statistics for dashboard counters
+    DashboardStatsResponse getDashboardStatistics();
 
+    // Retrieve complaint count grouped by category for analytics
+    List<CategoryAnalyticsResponse> getCategoryAnalytics();
+
+    // Retrieve monthly complaint counts for analytics charts
+    List<MonthlyComplaintAnalyticsResponse> getMonthlyComplaintAnalytics();
 }
