@@ -1,8 +1,8 @@
 package com.urbanfix.service.Implementation;
 
-import com.urbanfix.dto.LoginRequestDTO;
-import com.urbanfix.dto.LoginResponseDTO;
-import com.urbanfix.dto.RegisterRequestDTO;
+import com.urbanfix.dto.LoginRequest;
+import com.urbanfix.dto.LoginResponse;
+import com.urbanfix.dto.RegisterRequest;
 import com.urbanfix.entity.User;
 import com.urbanfix.enums.Role;
 import com.urbanfix.exception.ResourceAlreadyExistsException;
@@ -29,7 +29,7 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
-    public String register(RegisterRequestDTO request) {
+    public String register(RegisterRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new ResourceAlreadyExistsException("Email already registered");
@@ -46,7 +46,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-        public LoginResponseDTO login(LoginRequestDTO request) 
+        public LoginResponseDTO login(LoginRequest request) 
         {
             // 1. Fetch user from database by email
             User user = userRepository.findByEmail(request.getEmail())
@@ -64,7 +64,7 @@ public class AuthServiceImpl implements AuthService {
                     .roles(user.getRole().name())
                     .build();
 
-            // 4. Generate JWT token
+            // 4.spring-security requiress userDetails format for JWT generation
             String jwt = jwtService.generateToken(userDetails);
 
             // 5. Return JWT response to client
