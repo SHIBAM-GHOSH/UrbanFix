@@ -1,7 +1,7 @@
 package com.urbanfix.controller;
 
-import com.urbanfix.dto.DashboardStatsResponse;
-import com.urbanfix.dto.UserProfileResponse;
+import com.urbanfix.dto.DashboardStatsResponseDTO;
+import com.urbanfix.dto.UserProfileResponseDTO;
 import com.urbanfix.service.InterFaces.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,14 +23,14 @@ public class UserController {
     // Returns the profile belonging to the authenticated JWT subject.
     @GetMapping("/me")
     @Operation(summary = "Get current user profile")
-    public ResponseEntity<UserProfileResponse> getCurrentUserProfile() {
+    public ResponseEntity<UserProfileResponseDTO> getCurrentUserProfile() {
         return ResponseEntity.ok(userService.getCurrentUserProfile());
     }
 
     // Returns dashboard counts only for the authenticated user.
     @GetMapping("/me/dashboard")
     @Operation(summary = "Get current user dashboard statistics")
-    public ResponseEntity<DashboardStatsResponse> getCurrentUserDashboardStatistics() {
+    public ResponseEntity<DashboardStatsResponseDTO> getCurrentUserDashboardStatistics() {
         return ResponseEntity.ok(userService.getCurrentUserDashboardStatistics());
     }
 }

@@ -8,7 +8,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class UpdateComplaintStatusRequest {
+public class UpdateComplaintStatusRequestDTO {
 
     @NotNull(message = "Status is required.")
     private ComplaintStatus status;

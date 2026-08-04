@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class CreateComplaintRequest {
+public class ComplaintRequestDTO {
 
     @NotBlank(message = "Title is required")
     private String title;
@@ -27,8 +27,6 @@ public class CreateComplaintRequest {
 
     private String imageUrl;
 
-    public CreateComplaintRequest() {
+    public ComplaintRequestDTO() {
     }
-
-    // Generate Getters and Setters
 }

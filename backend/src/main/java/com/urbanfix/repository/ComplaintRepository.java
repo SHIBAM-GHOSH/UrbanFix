@@ -1,6 +1,6 @@
 package com.urbanfix.repository;
 
-import com.urbanfix.dto.CategoryAnalyticsResponse;
+import com.urbanfix.dto.CategoryAnalyticsResponseDTO;
 import com.urbanfix.entity.Complaint;
 import com.urbanfix.entity.User;
 import com.urbanfix.enums.ComplaintStatus;
@@ -19,45 +19,34 @@ public interface ComplaintRepository extends JpaRepository<Complaint, Long> {
     // Count total complaints submitted by a specific user
     long countByUser(User user);
 
-    // Count complaints submitted by a user with a specific status
+    // Count complaints submitted by a user with a specific status loke for PENDING, RESOLVED, 
+    //SELECT COUNT(*) FROM complaints WHERE user_id = ? AND status = ?;
     long countByUserAndStatus(User user, ComplaintStatus status);
 
     // Count total complaints in the system with a specific status
     long countByStatus(ComplaintStatus status);
 
     // Fetch complaints created by the logged-in user with optional status and category filters (Sorted newest-first)
+    // Fetch complaints with optional user, status, and category filters (Sorted newest-first)
     @Query("""
         SELECT c FROM Complaint c
-        WHERE c.user = :user
+        WHERE (:user IS NULL OR c.user = :user)
           AND (:status IS NULL OR c.status = :status)
           AND (:category IS NULL OR :category = '' OR c.category = :category)
         ORDER BY c.createdAt DESC
     """)
-    List<Complaint> findMyComplaintsFiltered(
+    List<Complaint> findComplaintsFiltered(
         @Param("user") User user,
         @Param("status") ComplaintStatus status,
         @Param("category") String category);
 
-    // Fetch all complaints in the system with optional status and category filters (Sorted newest-first)
-    @Query("""
-        SELECT c FROM Complaint c
-        WHERE (:status IS NULL OR c.status = :status)
-          AND (:category IS NULL OR :category = '' OR c.category = :category)
-        ORDER BY c.createdAt DESC
-    """)
-    List<Complaint> findAllComplaintsFiltered(
-        @Param("status") ComplaintStatus status,
-        @Param("category") String category);
 
     // Group complaints by category and return category counts for analytics
     @Query("""
-        SELECT new com.urbanfix.dto.CategoryAnalyticsResponse(
-                c.category,
-                COUNT(c)
-        )
+        SELECT new com.urbanfix.dto.CategoryAnalyticsResponseDTO(c.category,COUNT(c) )
         FROM Complaint c
         GROUP BY c.category
         ORDER BY COUNT(c) DESC
     """)   
-    List<CategoryAnalyticsResponse> getCategoryAnalytics();
+    List<CategoryAnalyticsResponseDTO> getCategoryAnalytics();
 }

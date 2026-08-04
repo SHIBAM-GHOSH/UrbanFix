@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class DashboardStatsResponse {
+public class DashboardStatsResponseDTO {
 
     private long totalComplaints;
 

@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Component;
 
-import com.urbanfix.dto.ComplaintResponse;
-import com.urbanfix.dto.CreateComplaintRequest;
+import com.urbanfix.dto.ComplaintRequestDTO;
+import com.urbanfix.dto.ComplaintResponseDTO;
 import com.urbanfix.entity.Complaint;
 import com.urbanfix.entity.User;
 import com.urbanfix.enums.ComplaintStatus;
@@ -14,7 +14,7 @@ import com.urbanfix.enums.ComplaintStatus;
 public class ComplaintMapper {
 
     public Complaint mapToEntity(
-            CreateComplaintRequest request,
+            ComplaintRequestDTO request,
             User currentUser) {
 
         Complaint complaint = new Complaint();
@@ -36,9 +36,9 @@ public class ComplaintMapper {
         return complaint;
     }
 
-    public ComplaintResponse mapToResponse(Complaint complaint) {
+    public ComplaintResponseDTO mapToResponse(Complaint complaint) {
 
-        ComplaintResponse response = new ComplaintResponse();
+        ComplaintResponseDTO response = new ComplaintResponseDTO();
 
         response.setId(complaint.getId());
         response.setTitle(complaint.getTitle());

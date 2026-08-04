@@ -1,8 +1,8 @@
 package com.urbanfix.controller;
 
-import com.urbanfix.dto.LoginRequest;
-import com.urbanfix.dto.LoginResponse;
-import com.urbanfix.dto.RegisterRequest;
+import com.urbanfix.dto.LoginRequestDTO;
+import com.urbanfix.dto.LoginResponseDTO;
+import com.urbanfix.dto.RegisterRequestDTO;
 import com.urbanfix.service.InterFaces.AuthService;
 
 import jakarta.validation.Valid;
@@ -27,7 +27,7 @@ public class AuthController {
 
     // Register a new user
     @PostMapping("/register")
-    public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<String> register(@Valid @RequestBody RegisterRequestDTO request) {
 
         String response = authService.register(request);
         return ResponseEntity.ok(response);
@@ -36,10 +36,10 @@ public class AuthController {
     
     // User Login
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) 
+    public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) 
         {
 
-            LoginResponse response = authService.login(request);
+            LoginResponseDTO response = authService.login(request);
 
             return ResponseEntity.ok(response);
         }

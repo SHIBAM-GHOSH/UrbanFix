@@ -17,10 +17,9 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.urbanfix.dto.ComplaintResponse;
-import com.urbanfix.dto.CreateComplaintRequest;
-import com.urbanfix.dto.UpdateComplaintRequest;
-import com.urbanfix.dto.UpdateComplaintStatusRequest;
+import com.urbanfix.dto.ComplaintRequestDTO;
+import com.urbanfix.dto.ComplaintResponseDTO;
+import com.urbanfix.dto.UpdateComplaintStatusRequestDTO;
 import com.urbanfix.enums.ComplaintStatus;
 import com.urbanfix.service.InterFaces.ComplaintService;
 
@@ -42,38 +41,38 @@ public class ComplaintController {
     // POST /api/complaints : Create a new civic complaint with multipart form data
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Create a new complaint")
-    public ResponseEntity<ComplaintResponse> createComplaint(
-            @Valid @ModelAttribute CreateComplaintRequest request,
+    public ResponseEntity<ComplaintResponseDTO> createComplaint(
+            @Valid @ModelAttribute ComplaintRequestDTO request,
             @RequestPart(required = false) MultipartFile image) {
-        ComplaintResponse response = complaintService1.createComplaint(request, image);
+        ComplaintResponseDTO response = complaintService1.createComplaint(request, image);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     // GET /api/complaints : Retrieve all complaints in the system with optional status/category filters
     @GetMapping
     @Operation(summary = "Get all complaints with optional filters")
-    public ResponseEntity<List<ComplaintResponse>> getAllComplaints(
+    public ResponseEntity<List<ComplaintResponseDTO>> getAllComplaints(
             @RequestParam(required = false) ComplaintStatus status,
             @RequestParam(required = false) String category) {
-        List<ComplaintResponse> responses = complaintService1.getAllComplaints(status, category);
+        List<ComplaintResponseDTO> responses = complaintService1.getAllComplaints(status, category);
         return ResponseEntity.ok(responses);
     }
 
     // GET /api/complaints/{complaintId} : Get a specific complaint by ID
     @GetMapping("/{complaintId}")
     @Operation(summary = "Get complaint by ID")
-    public ResponseEntity<ComplaintResponse> getComplaintById(@PathVariable Long complaintId) {
-        ComplaintResponse response = complaintService1.getComplaintById(complaintId);
+    public ResponseEntity<ComplaintResponseDTO> getComplaintById(@PathVariable Long complaintId) {
+        ComplaintResponseDTO response = complaintService1.getComplaintById(complaintId);
         return ResponseEntity.ok(response);
     }
 
     // PUT /api/complaints/{complaintId} : Update details of an existing complaint (creator only)
     @PutMapping("/{complaintId}")
     @Operation(summary = "Update complaint details")
-    public ResponseEntity<ComplaintResponse> updateComplaint(
+    public ResponseEntity<ComplaintResponseDTO> updateComplaint(
             @PathVariable Long complaintId,
-            @Valid @RequestBody UpdateComplaintRequest request) {
-        ComplaintResponse response = complaintService1.updateComplaint(complaintId, request);
+            @Valid @RequestBody ComplaintRequestDTO request) {
+        ComplaintResponseDTO response = complaintService1.updateComplaint(complaintId, request);
         return ResponseEntity.ok(response);
     }
 
@@ -88,20 +87,20 @@ public class ComplaintController {
     // GET /api/complaints/my : Retrieve complaints submitted by the authenticated user
     @GetMapping("/my")
     @Operation(summary = "Get the authenticated user's complaints")
-    public ResponseEntity<List<ComplaintResponse>> getMyComplaints(
+    public ResponseEntity<List<ComplaintResponseDTO>> getMyComplaints(
             @RequestParam(required = false) ComplaintStatus status,
             @RequestParam(required = false) String category) {
-        List<ComplaintResponse> responses = complaintService1.getMyComplaints(status, category);
+        List<ComplaintResponseDTO> responses = complaintService1.getMyComplaints(status, category);
         return ResponseEntity.ok(responses);
     }
 
     // PATCH /api/complaints/{id}/status : Update complaint status
     @PatchMapping("/{id}/status")
     @Operation(summary = "Update complaint status")
-    public ResponseEntity<ComplaintResponse> updateComplaintStatus(
+    public ResponseEntity<ComplaintResponseDTO> updateComplaintStatus(
             @PathVariable Long id,
-            @Valid @RequestBody UpdateComplaintStatusRequest request) {
-        ComplaintResponse response = complaintService1.updateComplaintStatus(id, request);
+            @Valid @RequestBody UpdateComplaintStatusRequestDTO request) {
+        ComplaintResponseDTO response = complaintService1.updateComplaintStatus(id, request);
         return ResponseEntity.ok(response);
     }
 }

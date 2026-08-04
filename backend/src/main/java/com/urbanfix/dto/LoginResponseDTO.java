@@ -1,14 +1,14 @@
 package com.urbanfix.dto;
 
 // DTO returned after successful login
-public class LoginResponse {
+public class LoginResponseDTO {
 
     private String token;
 
-    public LoginResponse() {
+    public LoginResponseDTO() {
     }
 
-    public LoginResponse(String token) {
+    public LoginResponseDTO(String token) {
         this.token = token;
     }
 

@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Schema(description = "Authenticated user profile")
 // Safe profile payload; the entity password is intentionally never exposed.
-public class UserProfileResponse {
+public class UserProfileResponseDTO {
 
     private Long id;
 

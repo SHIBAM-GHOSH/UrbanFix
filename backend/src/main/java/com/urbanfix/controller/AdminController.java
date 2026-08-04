@@ -1,8 +1,8 @@
 package com.urbanfix.controller;
 
-import com.urbanfix.dto.CategoryAnalyticsResponse;
-import com.urbanfix.dto.ComplaintResponse;
-import com.urbanfix.dto.DashboardStatsResponse;
+import com.urbanfix.dto.CategoryAnalyticsResponseDTO;
+import com.urbanfix.dto.ComplaintResponseDTO;
+import com.urbanfix.dto.DashboardStatsResponseDTO;
 import com.urbanfix.enums.ComplaintStatus;
 import com.urbanfix.service.InterFaces.ComplaintService;
 
@@ -31,11 +31,11 @@ public class AdminController {
     @GetMapping("/complaints")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get all complaints for Admin with optional filters")
-    public ResponseEntity<List<ComplaintResponse>> getAllComplaints(
+    public ResponseEntity<List<ComplaintResponseDTO>> getAllComplaints(
             @RequestParam(required = false) ComplaintStatus status,
             @RequestParam(required = false) String category) {
 
-        List<ComplaintResponse> response = complaintService1.getAllComplaintsForAdmin(status, category);
+        List<ComplaintResponseDTO> response = complaintService1.getAllComplaints(status, category);
         return ResponseEntity.ok(response);
     }
 
@@ -43,8 +43,8 @@ public class AdminController {
     @GetMapping("/dashboard")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get admin dashboard statistics")
-    public ResponseEntity<DashboardStatsResponse> getDashboardStatistics() {
-        DashboardStatsResponse response = complaintService1.getDashboardStatistics();
+    public ResponseEntity<DashboardStatsResponseDTO> getDashboardStatistics() {
+        DashboardStatsResponseDTO response = complaintService1.getDashboardStatistics();
         return ResponseEntity.ok(response);
     }
 
@@ -52,8 +52,8 @@ public class AdminController {
     @GetMapping("/dashboard/categories")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get category breakdown analytics")
-    public ResponseEntity<List<CategoryAnalyticsResponse>> getCategoryAnalytics() {
-        List<CategoryAnalyticsResponse> response = complaintService1.getCategoryAnalytics();
+    public ResponseEntity<List<CategoryAnalyticsResponseDTO>> getCategoryAnalytics() {
+        List<CategoryAnalyticsResponseDTO> response = complaintService1.getCategoryAnalytics();
         return ResponseEntity.ok(response);
     }
 }

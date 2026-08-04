@@ -1,7 +1,7 @@
 package com.urbanfix.service.Implementation;
 
-import com.urbanfix.dto.DashboardStatsResponse;
-import com.urbanfix.dto.UserProfileResponse;
+import com.urbanfix.dto.DashboardStatsResponseDTO;
+import com.urbanfix.dto.UserProfileResponseDTO;
 import com.urbanfix.entity.User;
 import com.urbanfix.enums.ComplaintStatus;
 import com.urbanfix.exception.ResourceNotFoundException;
@@ -17,33 +17,29 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private final UserRepository userRepository;
+    private final UserRepository userRepository;  //final mean its value cannot be changed after initialization
     private final ComplaintRepository complaintRepository;
 
     // Resolves the JWT subject to the current persisted user.
-    private User getCurrentUser() {
+    private User getCurrentUser() {  // get user row from table to user object
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        return userRepository.findByEmail(email)
+        return userRepository.findByEmail(email) //findbyEmail return  user object if user is found else NULL
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
     @Override
-    public UserProfileResponse getCurrentUserProfile() {
-        User user = getCurrentUser();
+    public UserProfileResponseDTO getCurrentUserProfile() {
+        User user1 = getCurrentUser(); //get curretn userdetaisl into object container 
 
-        return new UserProfileResponse(
-                user.getId(),
-                user.getFullName(),
-                user.getEmail(),
-                user.getRole());
+        return new UserProfileResponseDTO(user1.getId(), user1.getFullName(), user1.getEmail(), user1.getRole());
     }
 
     @Override
-    public DashboardStatsResponse getCurrentUserDashboardStatistics() {
+    public DashboardStatsResponseDTO getCurrentUserDashboardStatistics() {
         User user = getCurrentUser();
 
-        return new DashboardStatsResponse(
+        return new DashboardStatsResponseDTO(
                 complaintRepository.countByUser(user),
                 complaintRepository.countByUserAndStatus(user, ComplaintStatus.PENDING),
                 complaintRepository.countByUserAndStatus(user, ComplaintStatus.IN_PROGRESS),

@@ -1,14 +1,14 @@
 package com.urbanfix.service.InterFaces;
 
-import com.urbanfix.dto.LoginRequest;
-import com.urbanfix.dto.LoginResponse;
-import com.urbanfix.dto.RegisterRequest;
+import com.urbanfix.dto.LoginRequestDTO;
+import com.urbanfix.dto.LoginResponseDTO;
+import com.urbanfix.dto.RegisterRequestDTO;
 
 public interface AuthService {
 
     // Register a new user
-    String register(RegisterRequest request);
+    String register(RegisterRequestDTO request);
 
     // Authenticate an existing user
-    LoginResponse login(LoginRequest request);
+    LoginResponseDTO login(LoginRequestDTO request);
 }

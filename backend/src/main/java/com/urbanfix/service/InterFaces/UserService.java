@@ -1,13 +1,13 @@
 package com.urbanfix.service.InterFaces;
 
-import com.urbanfix.dto.DashboardStatsResponse;
-import com.urbanfix.dto.UserProfileResponse;
+import com.urbanfix.dto.DashboardStatsResponseDTO;
+import com.urbanfix.dto.UserProfileResponseDTO;
 
 public interface UserService {
 
-    // Returns the profile for the user identified by the JWT.
-    UserProfileResponse getCurrentUserProfile();
+    // Returns the profile for the user identified by the JWT
+    UserProfileResponseDTO getCurrentUserProfile();
 
-    // Returns complaint counts for the authenticated user's dashboard.
-    DashboardStatsResponse getCurrentUserDashboardStatistics();
+    // Returns complaint counts for the authenticated user's dashboard
+    DashboardStatsResponseDTO getCurrentUserDashboardStatistics();
 }

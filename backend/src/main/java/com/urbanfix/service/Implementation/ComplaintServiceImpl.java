@@ -1,12 +1,11 @@
 package com.urbanfix.service.Implementation;
 
 import com.urbanfix.Mapper.ComplaintMapper;
-import com.urbanfix.dto.CategoryAnalyticsResponse;
-import com.urbanfix.dto.ComplaintResponse;
-import com.urbanfix.dto.CreateComplaintRequest;
-import com.urbanfix.dto.DashboardStatsResponse;
-import com.urbanfix.dto.UpdateComplaintRequest;
-import com.urbanfix.dto.UpdateComplaintStatusRequest;
+import com.urbanfix.dto.CategoryAnalyticsResponseDTO;
+import com.urbanfix.dto.ComplaintRequestDTO;
+import com.urbanfix.dto.ComplaintResponseDTO;
+import com.urbanfix.dto.DashboardStatsResponseDTO;
+import com.urbanfix.dto.UpdateComplaintStatusRequestDTO;
 import com.urbanfix.entity.Complaint;
 import com.urbanfix.entity.User;
 import com.urbanfix.enums.ComplaintStatus;
@@ -18,7 +17,7 @@ import com.urbanfix.service.InterFaces.FileStorageService;
 
 import lombok.RequiredArgsConstructor;
 
-import java.util.List;
+import java.util.*;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -48,7 +47,7 @@ public class ComplaintServiceImpl implements ComplaintService {
 
     // Create a new complaint entity, upload optional image, and associate with logged-in user
     @Override
-    public ComplaintResponse createComplaint(CreateComplaintRequest request, MultipartFile image) {
+    public ComplaintResponseDTO createComplaint(ComplaintRequestDTO request, MultipartFile image) {
         User currentUser = getCurrentUser();
 
         String imageUrl = null;
@@ -56,23 +55,35 @@ public class ComplaintServiceImpl implements ComplaintService {
             imageUrl = fileStorageService1.uploadFile(image);
         }
 
+        //make a complaint object container
         Complaint complaint = complaintMapper1.mapToEntity(request, currentUser);
         complaint.setImageUrl(imageUrl);
+        //store the complaint contanier to DB usgin repository
         Complaint savedComplaint = complaintRepository1.save(complaint);
 
         return complaintMapper1.mapToResponse(savedComplaint);
     }
 
     // Fetch all complaints system-wide with optional status/category filters (Returns simple List)
+    //status is an enum and category is a string
     @Override
-    public List<ComplaintResponse> getAllComplaints(ComplaintStatus status, String category) {
-        List<Complaint> complaints = complaintRepository1.findAllComplaintsFiltered(status, category);
-        return complaints.stream().map(complaintMapper1::mapToResponse).toList();
-    }
+    public List<ComplaintResponseDTO> getAllComplaints(ComplaintStatus status, String category) 
+        {
+            List<Complaint> complaints = complaintRepository1.findComplaintsFiltered(null,status, category);
+            List<ComplaintResponseDTO> responseList = new ArrayList<>();
+
+            for (Complaint complaint : complaints) {
+                ComplaintResponseDTO response = complaintMapper1.mapToResponse(complaint);
+                responseList.add(response);
+            }
+
+            return responseList;
+
+        }
 
     // Fetch single complaint details by ID
     @Override
-    public ComplaintResponse getComplaintById(Long complaintId) {
+    public ComplaintResponseDTO getComplaintById(Long complaintId) {
         Complaint complaint = complaintRepository1.findById(complaintId)
                 .orElseThrow(() -> new ResourceNotFoundException("Complaint not found with id: " + complaintId));
 
@@ -81,7 +92,7 @@ public class ComplaintServiceImpl implements ComplaintService {
 
     // Update title, description, category, or location of a complaint (Creator only)
     @Override
-    public ComplaintResponse updateComplaint(Long complaintId, UpdateComplaintRequest request) {
+    public ComplaintResponseDTO updateComplaint(Long complaintId, ComplaintRequestDTO request) {
         Complaint complaint = complaintRepository1.findById(complaintId)
                 .orElseThrow(() -> new ResourceNotFoundException("Complaint not found with id: " + complaintId));
 
@@ -121,16 +132,26 @@ public class ComplaintServiceImpl implements ComplaintService {
 
     // Fetch complaints created ONLY by the authenticated user with optional filters (Returns simple List)
     @Override
-    public List<ComplaintResponse> getMyComplaints(ComplaintStatus status, String category) {
-        User currentUser = getCurrentUser();
-        List<Complaint> complaints = complaintRepository1.findMyComplaintsFiltered(currentUser, status, category);
-        return complaints.stream().map(complaintMapper1::mapToResponse).toList();
-    }
+    public List<ComplaintResponseDTO> getMyComplaints(ComplaintStatus status, String category) 
+        {
+            User currentUser = getCurrentUser();
+            List<Complaint> complaints = complaintRepository1.findComplaintsFiltered(currentUser, status, category);
+            //return complaints.stream().map(complaintMapper1::mapToResponse).toList();
+            List<ComplaintResponseDTO> responseList = new ArrayList<>();
+
+            for (Complaint complaint : complaints) {
+                ComplaintResponseDTO response = complaintMapper1.mapToResponse(complaint);
+                responseList.add(response);
+            }
+
+            return responseList;
+
+        }
 
     // Update status of a complaint (Admin only endpoint)
     @Override
     @PreAuthorize("hasRole('ADMIN')")
-    public ComplaintResponse updateComplaintStatus(Long complaintId, UpdateComplaintStatusRequest request) {
+    public ComplaintResponseDTO updateComplaintStatus(Long complaintId, UpdateComplaintStatusRequestDTO request) {
         Complaint complaint = complaintRepository1.findById(complaintId)
                 .orElseThrow(() -> new ResourceNotFoundException("Complaint not found with id: " + complaintId));
 
@@ -140,21 +161,21 @@ public class ComplaintServiceImpl implements ComplaintService {
     }
 
     // Fetch all complaints for Admin management view with optional filters (Returns simple List)
-    @Override
-    public List<ComplaintResponse> getAllComplaintsForAdmin(ComplaintStatus status, String category) {
-        List<Complaint> complaints = complaintRepository1.findAllComplaintsFiltered(status, category);
-        return complaints.stream().map(complaintMapper1::mapToResponse).toList();
-    }
+    // @Override
+    // public List<ComplaintResponseDTO> getAllComplaintsForAdmin(ComplaintStatus status, String category) {
+    //     List<Complaint> complaints = complaintRepository1.findComplaintsFiltered(status, category);
+    //     return complaints.stream().map(complaintMapper1::mapToResponse).toList();
+    // }
 
     // Compute high-level dashboard metrics (Total, Pending, In Progress, Resolved counts)
     @Override
-    public DashboardStatsResponse getDashboardStatistics() {
+    public DashboardStatsResponseDTO getDashboardStatistics() {
         long totalComplaints = complaintRepository1.count();
         long pendingComplaints = complaintRepository1.countByStatus(ComplaintStatus.PENDING);
         long inProgressComplaints = complaintRepository1.countByStatus(ComplaintStatus.IN_PROGRESS);
         long resolvedComplaints = complaintRepository1.countByStatus(ComplaintStatus.RESOLVED);
 
-        return new DashboardStatsResponse(
+        return new DashboardStatsResponseDTO(
                 totalComplaints,
                 pendingComplaints,
                 inProgressComplaints,
@@ -163,7 +184,7 @@ public class ComplaintServiceImpl implements ComplaintService {
 
     // Retrieve complaint counts grouped by category for analytics
     @Override
-    public List<CategoryAnalyticsResponse> getCategoryAnalytics() {
+    public List<CategoryAnalyticsResponseDTO> getCategoryAnalytics() {
         return complaintRepository1.getCategoryAnalytics();
     }
 }

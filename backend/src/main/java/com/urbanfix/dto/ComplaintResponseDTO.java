@@ -7,7 +7,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class ComplaintResponse {
+public class ComplaintResponseDTO {
 
     private Long id;
 
@@ -34,7 +34,7 @@ public class ComplaintResponse {
     // Name of the user who created the complaint
     private String userName;
 
-    public ComplaintResponse() {
+    public ComplaintResponseDTO() {
     }
 
     // Generate Getters and Setters
