@@ -27,6 +27,8 @@ public class ComplaintRequestDTO {
 
     private String imageUrl;
 
-    public ComplaintRequestDTO() {
+    public ComplaintRequestDTO() 
+    {
+        
     }
 }
