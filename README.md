@@ -259,14 +259,14 @@ UrbanFix/ (Root)
 ## ⚙️ Local Setup & Running Instructions
 
 ### 1. Database Configuration (MySQL)
-Create a MySQL database named `urbanfix`:
+Create a MySQL database named `urbanfix_db`:
 ```sql
-CREATE DATABASE urbanfix;
+CREATE DATABASE urbanfix_db;
 ```
 
 Update `backend/src/main/resources/application.properties` with your database credentials:
 ```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/urbanfix?useSSL=false&serverTimezone=UTC
+spring.datasource.url=jdbc:mysql://localhost:3306/urbanfix_db?useSSL=false&serverTimezone=UTC
 spring.datasource.username=YOUR_MYSQL_USERNAME
 spring.datasource.password=YOUR_MYSQL_PASSWORD
 

@@ -20,7 +20,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
+@RequiredArgsConstructor //enables insitailzation of final viriavbles 
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
