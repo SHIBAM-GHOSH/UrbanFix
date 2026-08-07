@@ -47,22 +47,21 @@ public class ComplaintServiceImpl implements ComplaintService {
 
     // Create a new complaint entity, upload optional image, and associate with logged-in user
     @Override
-    public ComplaintResponseDTO createComplaint(ComplaintRequestDTO request, MultipartFile image) {
-        User currentUser = getCurrentUser();
+    public ComplaintResponseDTO createComplaint(ComplaintRequestDTO request, MultipartFile image) 
+        {
+            User currentUser = getCurrentUser();
+            String imageUrl = null;
+            if (image != null && !image.isEmpty()) {
+                imageUrl = fileStorageService1.uploadFile(image);
+            }
+            //make a complaint object container
+            Complaint complaint = complaintMapper1.mapToEntity(request, currentUser);
+            complaint.setImageUrl(imageUrl);
+            //store the complaint contanier to DB usgin repository
+            Complaint savedComplaint = complaintRepository1.save(complaint);
 
-        String imageUrl = null;
-        if (image != null && !image.isEmpty()) {
-            imageUrl = fileStorageService1.uploadFile(image);
+            return complaintMapper1.mapToResponse(savedComplaint);
         }
-
-        //make a complaint object container
-        Complaint complaint = complaintMapper1.mapToEntity(request, currentUser);
-        complaint.setImageUrl(imageUrl);
-        //store the complaint contanier to DB usgin repository
-        Complaint savedComplaint = complaintRepository1.save(complaint);
-
-        return complaintMapper1.mapToResponse(savedComplaint);
-    }
 
     // Fetch all complaints system-wide with optional status/category filters (Returns simple List)
     //status is an enum and category is a string
@@ -160,12 +159,6 @@ public class ComplaintServiceImpl implements ComplaintService {
         return complaintMapper1.mapToResponse(updatedComplaint);
     }
 
-    // Fetch all complaints for Admin management view with optional filters (Returns simple List)
-    // @Override
-    // public List<ComplaintResponseDTO> getAllComplaintsForAdmin(ComplaintStatus status, String category) {
-    //     List<Complaint> complaints = complaintRepository1.findComplaintsFiltered(status, category);
-    //     return complaints.stream().map(complaintMapper1::mapToResponse).toList();
-    // }
 
     // Compute high-level dashboard metrics (Total, Pending, In Progress, Resolved counts)
     @Override
