@@ -10,6 +10,6 @@ public class TestController {
 
     @GetMapping
     public String test() {
-        return "JWT Authentication Successful";
+        return "UrbanFix Backend is running successfully!";
     }
 }

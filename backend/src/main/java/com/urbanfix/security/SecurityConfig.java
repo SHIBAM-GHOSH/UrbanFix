@@ -75,6 +75,7 @@ public class SecurityConfig
                     )
                     // Configure endpoint authorization
                    .authorizeHttpRequests(auth -> auth.requestMatchers(
+                                                                        "/api/test",
                                                                         "/api/auth/**",
                                                                         "/uploads/**",
                                                                         "/v3/api-docs/**",
@@ -94,4 +95,4 @@ public class SecurityConfig
                 return http.build();
             }
 
-}
+}
