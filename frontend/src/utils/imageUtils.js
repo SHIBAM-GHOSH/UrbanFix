@@ -9,9 +9,13 @@ export function getImageUrl(imagePath) {
     return imagePath;
   }
 
-  const rawBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
+  let rawBaseUrl = (import.meta.env.VITE_API_BASE_URL || '').trim();
   if (!rawBaseUrl) {
     return imagePath;
+  }
+
+  if (!rawBaseUrl.startsWith('http://') && !rawBaseUrl.startsWith('https://') && !rawBaseUrl.startsWith('/')) {
+    rawBaseUrl = `https://${rawBaseUrl}`;
   }
 
   // Remove trailing /api or trailing slash from base URL

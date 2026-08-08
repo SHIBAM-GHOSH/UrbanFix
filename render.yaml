@@ -38,7 +38,6 @@ services:
     rootDir: ./frontend
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
-    region: singapore
     routes:
       - type: rewrite
         source: /*
@@ -48,7 +47,7 @@ services:
         fromService:
           type: web
           name: urbanfix-backend
-          property: url
+          property: host
       - key: VITE_GOOGLE_MAPS_API_KEY
         sync: false
       - key: VITE_GOOGLE_MAPS_MAP_ID
@@ -63,3 +62,4 @@ databases:
     user: urbanfix_user
     region: singapore
     plan: free
+

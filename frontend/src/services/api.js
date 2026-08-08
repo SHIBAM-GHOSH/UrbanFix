@@ -1,7 +1,11 @@
 import axios from 'axios';
 import { clearToken, getToken } from '../utils/auth';
 
-const rawBaseUrl = (import.meta.env.VITE_API_BASE_URL || '').trim();
+let rawBaseUrl = (import.meta.env.VITE_API_BASE_URL || '').trim();
+if (rawBaseUrl && !rawBaseUrl.startsWith('http://') && !rawBaseUrl.startsWith('https://') && !rawBaseUrl.startsWith('/')) {
+  rawBaseUrl = `https://${rawBaseUrl}`;
+}
+
 const baseURL = rawBaseUrl
   ? (rawBaseUrl.endsWith('/api') ? rawBaseUrl : `${rawBaseUrl.replace(/\/$/, '')}/api`)
   : '/api';
