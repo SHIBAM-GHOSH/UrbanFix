@@ -48,6 +48,8 @@ function MetadataItem({ icon, label, value }) {
   );
 }
 
+import { getImageUrl } from '../../utils/imageUtils';
+
 function ComplaintDetailPage() {
   const { complaintId } = useParams();
   const navigate = useNavigate();
@@ -147,7 +149,7 @@ function ComplaintDetailPage() {
                 <Box
                   alt={complaint.title}
                   component="img"
-                  src={complaint.imageUrl}
+                  src={getImageUrl(complaint.imageUrl)}
                   sx={{ display: 'block', height: { xs: 260, md: 520 }, objectFit: 'cover', width: '100%' }}
                 />
               ) : (

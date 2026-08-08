@@ -23,6 +23,7 @@ import {
 import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 import ImageRoundedIcon from '@mui/icons-material/ImageRounded';
+import { getImageUrl } from '../../utils/imageUtils';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import ComplaintStatusChip from '../complaints/ComplaintStatusChip';
 import EmptyState from '../shared/EmptyState';
@@ -91,7 +92,7 @@ function AdminComplaintTable({ complaints = [], isLoading, updatingComplaintId, 
                   <Stack direction="row" alignItems="center" spacing={1.5}>
                     <Avatar
                       variant="rounded"
-                      src={complaint.imageUrl || ''}
+                      src={getImageUrl(complaint.imageUrl)}
                       sx={{
                         width: 44,
                         height: 44,

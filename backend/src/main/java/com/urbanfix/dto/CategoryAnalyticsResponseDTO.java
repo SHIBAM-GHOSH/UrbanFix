@@ -4,9 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Data  //enable getter,setter
+@NoArgsConstructor  //Enables default empty contructor, or object ccreattion
+@AllArgsConstructor //Enable full parametrized construtor /Object creation
 public class CategoryAnalyticsResponseDTO {
 
     private String category;

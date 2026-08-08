@@ -1,8 +1,13 @@
 import axios from 'axios';
 import { clearToken, getToken } from '../utils/auth';
 
+const rawBaseUrl = (import.meta.env.VITE_API_BASE_URL || '').trim();
+const baseURL = rawBaseUrl
+  ? (rawBaseUrl.endsWith('/api') ? rawBaseUrl : `${rawBaseUrl.replace(/\/$/, '')}/api`)
+  : '/api';
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
   },

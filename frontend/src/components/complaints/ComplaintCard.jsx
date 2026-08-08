@@ -13,6 +13,8 @@ import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import ComplaintStatusChip from './ComplaintStatusChip';
 
+import { getImageUrl } from '../../utils/imageUtils';
+
 function ComplaintCard({ complaint }) {
   const createdAt = new Date(complaint.createdAt).toLocaleDateString(undefined, {
     day: 'numeric',
@@ -24,7 +26,7 @@ function ComplaintCard({ complaint }) {
     <Card sx={{ height: '100%', transition: 'transform 180ms ease, box-shadow 180ms ease', '&:hover': { boxShadow: '0 10px 24px rgba(15, 23, 42, 0.08)', transform: 'translateY(-2px)' } }}>
       <CardActionArea component={RouterLink} sx={{ alignItems: 'stretch', display: 'flex', flexDirection: 'column', height: '100%' }} to={`/complaints/${complaint.id}`}>
         {complaint.imageUrl && (
-          <CardMedia alt={complaint.title} component="img" height="180" image={complaint.imageUrl} />
+          <CardMedia alt={complaint.title} component="img" height="180" image={getImageUrl(complaint.imageUrl)} />
         )}
         <CardContent sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, gap: 1.5, p: 2.5 }}>
           <Stack alignItems="flex-start" direction="row" justifyContent="space-between" spacing={1}>
