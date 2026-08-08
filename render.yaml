@@ -9,7 +9,7 @@ services:
     name: urbanfix-backend
     runtime: docker
     dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
+    dockerContext: .
     plan: free
     region: singapore
     envVars:
