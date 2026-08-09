@@ -2,53 +2,34 @@
 
 UrbanFix is a production-grade full-stack civic engagement platform that enables citizens to report public infrastructure issues with GPS coordinates, descriptions, and photo evidence.
 
-The platform features a **React 19 + Material UI** frontend and a **Spring Boot 3 + MySQL/PostgreSQL** backend for complaint triage, status tracking, and telemetry analytics.
-
 ---
 
 ## ✨ Features Implemented
 
-### 🛡️ Authentication & Security
-- **JWT Authentication**: Stateless authentication with JWT storage in `localStorage` and `Bearer` token authorization headers.
-- **Spring Security Integration**: BCrypt password hashing, custom `UserDetailsService`, stateless session policies, and `JwtAuthenticationFilter`.
-- **Role-Based Access Control**: Strict segregation between `CITIZEN` (`USER`) and `ADMIN` roles for dashboard access and complaint management.
-- **Centralized Session Cleanup**: Auto-logout interceptor handling 401 Unauthorized responses.
-
-### 📋 Complaint & Report Module
-- **Civic Issue Reporting**: Submit complaints with title, category, description, landmark address, GPS coordinates, and photo evidence.
-- **Interactive Google Maps GIS**: Drag and drop pins on live Google Maps (`@vis.gl/react-google-maps`) with automatic reverse-geocoding into street addresses and browser GPS positioning.
-- **Multi-Marker Operations Map**: Dashboard map views displaying complaint pins color-coded by resolution status (*PENDING*, *IN_PROGRESS*, *RESOLVED*) with interactive info windows.
-- **File Upload Service**: Multipart file storage supporting image evidence (`JPG`, `PNG`, `WebP`) with static resource serving.
-- **My Complaints Feed**: Personalized citizen feed with search bar, category chips, status filtering, and grid/map view toggle.
-
-### 📊 Admin Operations & Analytics Dashboard
-- **Executive Operations Triage**: Operational KPI summary tiles (Total Volume, Pending Triage, In Progress, Resolved).
-- **Interactive Status Management**: Real-time complaint status updates (`PENDING` → `IN_PROGRESS` → `RESOLVED` / `REJECTED`).
-- **Category Analytics (Recharts)**: Donut chart displaying department complaint volume shares.
-- **Monthly Reporting Trends**: Bar chart visualizing monthly complaint volume metrics.
+- **Authentication & Security**: Stateless JWT auth, Spring Security RBAC (`CITIZEN` / `ADMIN`), BCrypt password hashing.
+- **Civic Reporting**: Issue reporting with Google Maps GPS pin-drop, reverse-geocoding, photo uploads, and status feeds.
+- **AI Classification (Groq)**: Automated complaint categorization & severity scoring via Groq API (`llama-3.3-70b-versatile`).
+- **Admin Dashboard**: Triage management (`PENDING` → `IN_PROGRESS` → `RESOLVED` / `REJECTED`) & Recharts analytics.
 
 ---
-
 
 ## 🏗️ Tech Stack
 
 ### Frontend (`frontend/`)
-- **Framework**: React 19
-- **Build Tool**: Vite 6
-- **UI Library**: Material UI (MUI v7), `@emotion/react`, `@emotion/styled`
-- **Mapping & GPS**: `@vis.gl/react-google-maps` (Google Maps JS SDK + Advanced Markers + Geocoding API)
-- **Routing**: React Router DOM v7 (Route-level `React.lazy` code-splitting)
-- **Data Visualization**: Recharts v2
-- **HTTP Client**: Axios (with custom request/response interceptors)
+- **Framework**: React 19 + Vite 6
+- **UI Library**: Material UI (MUI v7)
+- **GIS & Mapping**: `@vis.gl/react-google-maps` (Google Maps JS SDK + Geocoding API)
+- **Analytics & HTTP**: Recharts v2, Axios (JWT interceptors)
 
 ### Backend (`backend/`)
 - **Core Framework**: Java 21, Spring Boot 3.4
-- **Security**: Spring Security, JWT (JJWT v0.12), BCrypt Password Encoder
-- **Database & ORM**: MySQL 8, Spring Data JPA, Hibernate
-- **API Documentation**: OpenAPI 3.1 / Swagger UI (`springdoc-openapi`)
-- **Build Tool**: Apache Maven
+- **Security**: Spring Security, JWT (JJWT v0.12), BCrypt
+- **AI Service**: Groq Cloud API (`llama-3.3-70b-versatile`) via RestTemplate
+- **Database & ORM**: MySQL 8 / PostgreSQL, Spring Data JPA, Hibernate
+- **API Documentation**: OpenAPI 3.1 / Swagger UI
 
 ---
+
 
 ## 🏛️ System Architecture
 
@@ -67,6 +48,7 @@ flowchart TD
     subgraph ExternalServices ["🌐 External Cloud Services"]
         GoogleGeocoding["Google Geocoding API"]
         GoogleMapsTile["Google Maps Platform Tiles"]
+        GroqAI["Groq Cloud API (Llama 3.3 70B)"]
     end
 
     subgraph SecurityTier ["🛡️ Security & API Gateway Layer"]
@@ -84,6 +66,7 @@ flowchart TD
         AuthService["AuthServiceImpl"]
         ComplaintService["ComplaintServiceImpl"]
         FileService["FileStorageServiceImpl"]
+        AiService["AiServiceImpl (Groq API)"]
         UserService["UserServiceImpl"]
         
         Mapper["ComplaintMapper DTO Converter"]
@@ -92,7 +75,7 @@ flowchart TD
 
     subgraph PersistenceTier ["💾 Data & Storage Layer"]
         JPA["Spring Data JPA & Hibernate ORM"]
-        Database[("MySQL / H2 Database")]
+        Database[("MySQL / PostgreSQL Database")]
         LocalStorage["File System / Photo Uploads Directory"]
     end
 
@@ -102,9 +85,10 @@ flowchart TD
     UI --> Charts
     UI --> AxiosClient
 
-    %% External Maps API Interactions
+    %% External Maps & AI API Interactions
     MapsSDK <-->|"Reverse Geocoding / Pin Drops"| GoogleGeocoding
     MapsSDK <-->|"Tiles & Advanced Markers"| GoogleMapsTile
+    AiService <-->|"Auto-Categorization & Severity Rating"| GroqAI
 
     %% Client to Backend Communication
     AxiosClient <-->|"HTTPS / REST (JSON + Bearer JWT)"| CORS
@@ -126,6 +110,7 @@ flowchart TD
     %% Service to Storage & Mapper
     ComplaintService --> Mapper
     ComplaintService --> FileService
+    ComplaintService --> AiService
     FileService --> LocalStorage
     ComplaintService --> JPA
     AuthService --> JPA
@@ -144,18 +129,19 @@ flowchart TD
    - React stores the JWT token locally; Axios request interceptors automatically append `Authorization: Bearer <token>` to every subsequent REST request.
    - `JwtAuthenticationFilter` validates token signature on incoming requests and injects `SecurityContextHolder` credentials.
 
-2. **Civic Complaint Reporting & Geocoding Pipeline**:
+2. **Civic Complaint Reporting & AI Triage Pipeline**:
    - Citizen drops an interactive pin on `LocationPickerMap` or triggers browser GPS positioning.
-   - The frontend calls Google Geocoding API to resolve coordinates (`lat`, `lng`) into a formatted street address.
+   - Frontend calls Google Geocoding API to resolve coordinates (`lat`, `lng`) into a street address.
    - Submitting the form sends a `multipart/form-data` payload (`JSON metadata` + `Photo Evidence File`).
-   - `FileStorageServiceImpl` validates image constraints (under 5MB, valid mime-type), persists it to disk/storage, and generates a URL.
-   - `ComplaintServiceImpl` transforms the DTO into a `Complaint` JPA entity, assigns initial `PENDING` status, and commits to database via Hibernate.
+   - `FileStorageServiceImpl` validates and persists the image evidence file to storage.
+   - `AiServiceImpl` calls **Groq Cloud API (`llama-3.3-70b-versatile`)** to automatically classify issue category, evaluate severity (`HIGH`/`MEDIUM`/`LOW`), and generate a structured description.
+   - `ComplaintServiceImpl` transforms the DTO into a `Complaint` JPA entity with initial `PENDING` status and commits to database via Hibernate.
 
 3. **Admin Telemetry & Operations Pipeline**:
    - Municipal admins access `/admin/dashboard` protected by `@PreAuthorize("hasRole('ADMIN')")`.
    - Spring Boot executes dynamic JPA `Specification` queries and custom aggregation repository methods (`COUNT(c.status)`, `GROUP BY category`).
-   - The frontend renders citywide geographic complaint pins via `ComplaintOverviewMap` (color-coded by resolution status) alongside Recharts telemetry graphs.
-   - Status transitions (`PENDING` → `IN_PROGRESS` → `RESOLVED`) execute optimistic database updates with updated timestamps.
+   - Frontend renders citywide geographic complaint pins via `ComplaintOverviewMap` color-coded by status alongside Recharts telemetry graphs.
+   - Status transitions (`PENDING` → `IN_PROGRESS` → `RESOLVED` / `REJECTED`) execute optimistic database updates with updated timestamps.
 
 ---
 
@@ -198,37 +184,6 @@ sequenceDiagram
 
 ---
 
-## 🔄 Complaint Resolution Lifecycle State Machine
-
-The state machine below illustrates how a civic issue progresses from citizen reporting through municipal triage to final resolution or rejection:
-
-```mermaid
-stateDiagram-v2
-    [*] --> Draft: Citizen opens Complaint Form
-    Draft --> GeolocationResolved: Drop GPS Pin / Reverse Geocode
-    GeolocationResolved --> ImageUploaded: Attach Photo Evidence
-    ImageUploaded --> Submitted: POST /api/complaints (Multipart)
-    
-    Submitted --> PENDING: Initial Persistence in Database
-    
-    state PENDING {
-        [*] --> Unassigned: Appears on Admin Triage Queue
-    }
-    
-    PENDING --> IN_PROGRESS: Admin Updates Status to IN_PROGRESS
-    PENDING --> REJECTED: Admin Rejects (Invalid/Duplicate)
-    
-    state IN_PROGRESS {
-        [*] --> FieldResolution: Municipal Department Assigned & Work Underway
-    }
-    
-    IN_PROGRESS --> RESOLVED: Admin Marks Resolution Complete
-    
-    REJECTED --> [*]: Case Closed (Rejected)
-    RESOLVED --> [*]: Case Closed (Resolved)
-```
-
----
 
 ## 📊 Database Architecture
 
