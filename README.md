@@ -1,10 +1,8 @@
 # 🏙️ UrbanFix - Civic Issue Reporting & Management Platform
 
-UrbanFix is a production-grade full-stack civic engagement platform that enables citizens to report public infrastructure issues (such as road damage, water supply disruptions, streetlight failures, garbage accumulation, and public parks maintenance) with GPS coordinates, descriptions, and photo evidence.
+UrbanFix is a production-grade full-stack civic engagement platform that enables citizens to report public infrastructure issues with GPS coordinates, descriptions, and photo evidence.
 
-The platform features a **React 19 + Material UI** frontend and a **Spring Boot 3 + MySQL** backend, empowering municipal response teams to triage incoming reports, track operational resolution status, and analyze citywide telemetry analytics.
-
-> **Project Status:** ✅ Version 1.0 Production-Ready (Full-Stack Monorepo Completed)
+The platform features a **React 19 + Material UI** frontend and a **Spring Boot 3 + MySQL/PostgreSQL** backend for complaint triage, status tracking, and telemetry analytics.
 
 ---
 
@@ -14,29 +12,23 @@ The platform features a **React 19 + Material UI** frontend and a **Spring Boot 
 - **JWT Authentication**: Stateless authentication with JWT storage in `localStorage` and `Bearer` token authorization headers.
 - **Spring Security Integration**: BCrypt password hashing, custom `UserDetailsService`, stateless session policies, and `JwtAuthenticationFilter`.
 - **Role-Based Access Control**: Strict segregation between `CITIZEN` (`USER`) and `ADMIN` roles for dashboard access and complaint management.
-- **Centralized Session Cleanup**: Auto-logout interceptor handling 401 Unauthorized responses with user notifications.
+- **Centralized Session Cleanup**: Auto-logout interceptor handling 401 Unauthorized responses.
 
 ### 📋 Complaint & Report Module
 - **Civic Issue Reporting**: Submit complaints with title, category, description, landmark address, GPS coordinates, and photo evidence.
-- **Interactive Google GPS Maps**: Drag and drop pins on live Google Maps (`@vis.gl/react-google-maps`) with automatic reverse-geocoding into street addresses and one-click browser GPS positioning.
-- **Multi-Marker Operations Map**: Interactive map views on dashboards and list pages displaying complaint pins color-coded by resolution status (*Pending*, *In Progress*, *Resolved*) with interactive popup info windows.
+- **Interactive Google Maps GIS**: Drag and drop pins on live Google Maps (`@vis.gl/react-google-maps`) with automatic reverse-geocoding into street addresses and browser GPS positioning.
+- **Multi-Marker Operations Map**: Dashboard map views displaying complaint pins color-coded by resolution status (*PENDING*, *IN_PROGRESS*, *RESOLVED*) with interactive info windows.
 - **File Upload Service**: Multipart file storage supporting image evidence (`JPG`, `PNG`, `WebP`) with static resource serving.
-- **My Complaints Feed**: Personalized citizen dashboard with search bar, category chips, status filtering, and grid/map view toggle.
-- **Edit & Unsaved Changes Guard**: Unsaved change tracking with interactive exit confirmation dialogs.
+- **My Complaints Feed**: Personalized citizen feed with search bar, category chips, status filtering, and grid/map view toggle.
 
 ### 📊 Admin Operations & Analytics Dashboard
 - **Executive Operations Triage**: Operational KPI summary tiles (Total Volume, Pending Triage, In Progress, Resolved).
-- **Interactive Status Management**: Real-time complaint status updates (`PENDING` → `IN_PROGRESS` → `RESOLVED` / `REJECTED`) with confirmation modals and snackbar toasts.
-- **Category Analytics (Recharts)**: Interactive donut chart displaying department complaint volume shares with custom tooltips.
-- **Monthly Reporting Trends**: Rounded bar chart visualizing monthly complaint volume metrics.
-
-### 🎨 Modern UX & Responsive Design
-- **Responsive Layout**: Tailored for Mobile (<600px), Tablet (600–900px), and Desktop viewports.
-- **Mobile Navigation Drawer**: Slide-in mobile menu featuring user profile card, role badges, and quick links.
-- **Touch-Scrollable Data Tables**: Responsive table wrappers preventing document horizontal overflow.
-- **Centralized UX Components**: Global `SnackbarContext`, skeleton loaders (`CardSkeleton`, `TableSkeleton`), `LoadingOverlay`, `LoadingButton`, and `EmptyState` fallbacks.
+- **Interactive Status Management**: Real-time complaint status updates (`PENDING` → `IN_PROGRESS` → `RESOLVED` / `REJECTED`).
+- **Category Analytics (Recharts)**: Donut chart displaying department complaint volume shares.
+- **Monthly Reporting Trends**: Bar chart visualizing monthly complaint volume metrics.
 
 ---
+
 
 ## 🏗️ Tech Stack
 
@@ -157,13 +149,84 @@ flowchart TD
    - The frontend calls Google Geocoding API to resolve coordinates (`lat`, `lng`) into a formatted street address.
    - Submitting the form sends a `multipart/form-data` payload (`JSON metadata` + `Photo Evidence File`).
    - `FileStorageServiceImpl` validates image constraints (under 5MB, valid mime-type), persists it to disk/storage, and generates a URL.
-   - `ComplaintServiceImpl` transforms the DTO into a `Complaint` JPA entity, assigns initial `PENDING` status, and commits to MySQL via Hibernate.
+   - `ComplaintServiceImpl` transforms the DTO into a `Complaint` JPA entity, assigns initial `PENDING` status, and commits to database via Hibernate.
 
 3. **Admin Telemetry & Operations Pipeline**:
    - Municipal admins access `/admin/dashboard` protected by `@PreAuthorize("hasRole('ADMIN')")`.
    - Spring Boot executes dynamic JPA `Specification` queries and custom aggregation repository methods (`COUNT(c.status)`, `GROUP BY category`).
    - The frontend renders citywide geographic complaint pins via `ComplaintOverviewMap` (color-coded by resolution status) alongside Recharts telemetry graphs.
    - Status transitions (`PENDING` → `IN_PROGRESS` → `RESOLVED`) execute optimistic database updates with updated timestamps.
+
+---
+
+### 🔐 Authentication & JWT Request Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Citizen / Admin
+    participant React as React Frontend (Axios)
+    participant AuthCtrl as AuthController
+    participant AuthSvc as AuthServiceImpl
+    participant SecMgr as AuthenticationManager
+    participant JwtSvc as JwtService
+    participant DB as Database (MySQL/PostgreSQL)
+
+    User->>React: 1. Enter Credentials (Email & Password)
+    React->>AuthCtrl: 2. POST /api/auth/login
+    AuthCtrl->>AuthSvc: 3. authenticate(LoginRequest)
+    AuthSvc->>SecMgr: 4. authenticate(UsernamePasswordAuthToken)
+    SecMgr->>DB: 5. Fetch User details by Email
+    DB-->>SecMgr: 6. User Entity (BCrypt Hashed Password)
+    SecMgr-->>AuthSvc: 7. Authentication Validated
+    AuthSvc->>JwtSvc: 8. generateToken(UserDetails)
+    JwtSvc-->>AuthSvc: 9. Signed JWT Bearer Token
+    AuthSvc-->>AuthCtrl: 10. AuthResponse (Token + Profile)
+    AuthCtrl-->>React: 11. HTTP 200 OK (JWT Token)
+    React->>React: 12. Persist JWT in localStorage
+
+    Note over User, DB: Subsequent Authenticated Requests
+
+    React->>AuthCtrl: 13. GET /api/complaints/my (Header: Authorization Bearer JWT)
+    Note over React, AuthCtrl: JwtAuthenticationFilter intercepts request
+    AuthCtrl->>JwtSvc: 14. extractUsername & validateToken
+    JwtSvc-->>AuthCtrl: 15. Token Verified & SecurityContext set
+    AuthCtrl->>DB: 16. Query User Complaints
+    DB-->>AuthCtrl: 17. Complaint Entities
+    AuthCtrl-->>React: 18. HTTP 200 OK (JSON Data)
+```
+
+---
+
+## 🔄 Complaint Resolution Lifecycle State Machine
+
+The state machine below illustrates how a civic issue progresses from citizen reporting through municipal triage to final resolution or rejection:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Draft: Citizen opens Complaint Form
+    Draft --> GeolocationResolved: Drop GPS Pin / Reverse Geocode
+    GeolocationResolved --> ImageUploaded: Attach Photo Evidence
+    ImageUploaded --> Submitted: POST /api/complaints (Multipart)
+    
+    Submitted --> PENDING: Initial Persistence in Database
+    
+    state PENDING {
+        [*] --> Unassigned: Appears on Admin Triage Queue
+    }
+    
+    PENDING --> IN_PROGRESS: Admin Updates Status to IN_PROGRESS
+    PENDING --> REJECTED: Admin Rejects (Invalid/Duplicate)
+    
+    state IN_PROGRESS {
+        [*] --> FieldResolution: Municipal Department Assigned & Work Underway
+    }
+    
+    IN_PROGRESS --> RESOLVED: Admin Marks Resolution Complete
+    
+    REJECTED --> [*]: Case Closed (Rejected)
+    RESOLVED --> [*]: Case Closed (Resolved)
+```
 
 ---
 
@@ -198,6 +261,47 @@ erDiagram
         timestamp updated_at
     }
 ```
+
+---
+
+## ☁️ Production Deployment Infrastructure Blueprint
+
+The deployment blueprint specifies the Render Cloud platform blueprint architecture (`render.yaml`) hosting UrbanFix:
+
+```mermaid
+flowchart LR
+    subgraph Clients ["👥 End Users & Clients"]
+        CitizenDev["📱 Citizen Mobile Browser"]
+        AdminDev["💻 Admin Desktop Portal"]
+    end
+
+    subgraph RenderCloud ["☁️ Render Cloud Infrastructure (Singapore)"]
+        subgraph FrontendApp ["Frontend Web Service"]
+            StaticSite["React 19 + Vite Static Web App\n(urbanfix-frontend.onrender.com)"]
+        end
+
+        subgraph BackendApp ["Backend Container Service"]
+            DockerApp["Spring Boot 3 Docker Container\n(urbanfix-backend.onrender.com)"]
+            UploadStore["Persisted File Storage\n(/backend/uploads)"]
+        end
+
+        subgraph DatabaseService ["Managed Database Service"]
+            PostgreDB[("Managed PostgreSQL Database\n(urbanfix_db)")]
+        end
+    end
+
+    subgraph ExternalAPIs ["🌐 External APIs"]
+        GoogleMapsAPI["Google Maps Platform\n(Maps JS SDK & Geocoding)"]
+    end
+
+    CitizenDev -->|"HTTPS"| StaticSite
+    AdminDev -->|"HTTPS"| StaticSite
+    StaticSite <-->|"REST APIs + Bearer JWT"| DockerApp
+    StaticSite <-->|"Interactive GIS & Pins"| GoogleMapsAPI
+    DockerApp -->|"Multipart Storage"| UploadStore
+    DockerApp <-->|"Spring Data JPA / HikariCP"| PostgreDB
+```
+
 
 ---
 
