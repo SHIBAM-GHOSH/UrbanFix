@@ -26,6 +26,7 @@ import ImageRoundedIcon from '@mui/icons-material/ImageRounded';
 import { getImageUrl } from '../../utils/imageUtils';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import ComplaintStatusChip from '../complaints/ComplaintStatusChip';
+import SeverityChip from '../complaints/SeverityChip';
 import EmptyState from '../shared/EmptyState';
 
 const STATUS_OPTIONS = ['PENDING', 'IN_PROGRESS', 'RESOLVED', 'REJECTED'];
@@ -56,6 +57,7 @@ function AdminComplaintTable({ complaints = [], isLoading, updatingComplaintId, 
           <TableRow>
             <TableCell sx={{ fontWeight: 800 }}>ID & Title</TableCell>
             <TableCell sx={{ fontWeight: 800 }}>Category</TableCell>
+            <TableCell sx={{ fontWeight: 800 }}>AI Severity</TableCell>
             <TableCell sx={{ fontWeight: 800 }}>Reporter</TableCell>
             <TableCell sx={{ fontWeight: 800 }}>Current Status</TableCell>
             <TableCell sx={{ fontWeight: 800 }}>Date Reported</TableCell>
@@ -141,6 +143,11 @@ function AdminComplaintTable({ complaints = [], isLoading, updatingComplaintId, 
                   />
                 </TableCell>
 
+                {/* AI Severity */}
+                <TableCell>
+                  <SeverityChip severity={complaint.severity} />
+                </TableCell>
+
                 {/* Reporter */}
                 <TableCell>
                   <Typography variant="body2" fontWeight={600}>
@@ -213,7 +220,7 @@ function AdminComplaintTable({ complaints = [], isLoading, updatingComplaintId, 
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={7}>
+              <TableCell colSpan={8}>
                 <Box py={4}>
                   <EmptyState
                     description="No complaints match the specified status or category filters."

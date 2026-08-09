@@ -21,6 +21,7 @@ import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
 import UpdateRoundedIcon from '@mui/icons-material/UpdateRounded';
 import ImageNotSupportedRoundedIcon from '@mui/icons-material/ImageNotSupportedRounded';
 import ComplaintStatusChip from '../../components/complaints/ComplaintStatusChip';
+import SeverityChip from '../../components/complaints/SeverityChip';
 import AppSnackbar from '../../components/shared/AppSnackbar';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import LoadingState from '../../components/shared/LoadingState';
@@ -122,6 +123,7 @@ function ComplaintDetailPage() {
           <Box>
             <Stack alignItems="center" direction="row" flexWrap="wrap" gap={1} sx={{ mb: 1 }}>
               <ComplaintStatusChip status={complaint.status} />
+              <SeverityChip severity={complaint.severity} />
               <Chip color="primary" label={complaint.category || 'General'} size="small" variant="outlined" />
             </Stack>
             <Typography component="h1" variant="h1">

@@ -1,12 +1,8 @@
 package com.urbanfix.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class DashboardStatsResponseDTO {
 
     private long totalComplaints;
@@ -16,4 +12,16 @@ public class DashboardStatsResponseDTO {
     private long inProgressComplaints;
 
     private long resolvedComplaints;
+
+    public DashboardStatsResponseDTO()
+    {
+
+    }
+
+    public DashboardStatsResponseDTO(long totalComplaints, long pendingComplaints, long inProgressComplaints, long resolvedComplaints) {
+        this.totalComplaints = totalComplaints;
+        this.pendingComplaints = pendingComplaints;
+        this.inProgressComplaints = inProgressComplaints;
+        this.resolvedComplaints = resolvedComplaints;
+    }
 }

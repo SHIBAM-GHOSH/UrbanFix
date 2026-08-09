@@ -12,6 +12,7 @@ import {
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import ComplaintStatusChip from './ComplaintStatusChip';
+import SeverityChip from './SeverityChip';
 
 import { getImageUrl } from '../../utils/imageUtils';
 
@@ -30,7 +31,10 @@ function ComplaintCard({ complaint }) {
         )}
         <CardContent sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, gap: 1.5, p: 2.5 }}>
           <Stack alignItems="flex-start" direction="row" justifyContent="space-between" spacing={1}>
-            <Chip color="primary" label={complaint.category} size="small" variant="outlined" />
+            <Stack direction="row" spacing={0.75} alignItems="center" flexWrap="wrap">
+              <Chip color="primary" label={complaint.category} size="small" variant="outlined" />
+              <SeverityChip severity={complaint.severity} />
+            </Stack>
             <ComplaintStatusChip status={complaint.status} />
           </Stack>
           <Box>

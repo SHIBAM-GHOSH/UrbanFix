@@ -1,6 +1,7 @@
 package com.urbanfix.service.Implementation;
 
 import com.urbanfix.Mapper.ComplaintMapper;
+import com.urbanfix.dto.AiClassificationDTO;
 import com.urbanfix.dto.CategoryAnalyticsResponseDTO;
 import com.urbanfix.dto.ComplaintRequestDTO;
 import com.urbanfix.dto.ComplaintResponseDTO;
@@ -12,6 +13,7 @@ import com.urbanfix.enums.ComplaintStatus;
 import com.urbanfix.enums.Role;
 import com.urbanfix.repository.ComplaintRepository;
 import com.urbanfix.repository.UserRepository;
+import com.urbanfix.service.InterFaces.AiService;
 import com.urbanfix.service.InterFaces.ComplaintService;
 import com.urbanfix.service.InterFaces.FileStorageService;
 
@@ -37,6 +39,8 @@ public class ComplaintServiceImpl implements ComplaintService {
     private final ComplaintMapper complaintMapper1;
     private final FileStorageService fileStorageService1;
 
+    private final AiService aiService1;
+
     // Helper method: Fetches the currently authenticated User entity from DB using JWT SecurityContext
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -57,6 +61,28 @@ public class ComplaintServiceImpl implements ComplaintService {
             //make a complaint object container
             Complaint complaint = complaintMapper1.mapToEntity(request, currentUser);
             complaint.setImageUrl(imageUrl);
+//----------------------------------------------------
+            // 2. Call Gemini AI to classify category, severity, and structure description
+            AiClassificationDTO aiResult = aiService1.classifyComplaint(request.getTitle(), request.getDescription());
+
+            if(aiResult != null)
+            {
+                // Auto-assign AI Category
+                if (aiResult.getCategory() != null && !aiResult.getCategory().isEmpty()) {
+                    complaint.setCategory(aiResult.getCategory());
+                }
+
+                // Auto-assign AI Severity (HIGH, MEDIUM, LOW)
+                complaint.setSeverity(aiResult.getSeverity());
+
+                // Auto-assign AI Structured Description
+                if (aiResult.getStructuredDescription() != null && !aiResult.getStructuredDescription().isEmpty()) {
+                    complaint.setDescription(aiResult.getStructuredDescription());
+                }                
+  
+            }
+//------------------------------------------------------------
+
             //store the complaint contanier to DB usgin repository
             Complaint savedComplaint = complaintRepository1.save(complaint);
 

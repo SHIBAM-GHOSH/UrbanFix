@@ -10,25 +10,19 @@ import java.time.LocalDateTime;
 public class ComplaintResponseDTO {
 
     private Long id;
-
     private String title;
-
     private String description;
-
     private String category;
 
     private String location;
-
     private Double latitude;
-
     private Double longitude;
 
     private String imageUrl;
-
+    private String severity;
     private ComplaintStatus status;
 
     private LocalDateTime createdAt;
-
     private LocalDateTime updatedAt;
 
     // Name of the user who created the complaint

@@ -42,6 +42,9 @@ public class Complaint {
     // Image URL (Cloudinary later)
     private String imageUrl;
 
+    //Compleint severity
+    private String severity;
+
     // Complaint Status
     @Enumerated(EnumType.STRING)
     private ComplaintStatus status;

@@ -36,6 +36,7 @@ public class ComplaintMapper {
         return complaint;
     }
 
+//response object for ADMIN dash board
     public ComplaintResponseDTO mapToResponse(Complaint complaint) {
 
         ComplaintResponseDTO response = new ComplaintResponseDTO();
@@ -49,6 +50,8 @@ public class ComplaintMapper {
         response.setLongitude(complaint.getLongitude());
         response.setImageUrl(complaint.getImageUrl());
         response.setStatus(complaint.getStatus());
+
+        response.setSeverity(complaint.getSeverity());
         response.setCreatedAt(complaint.getCreatedAt());
         response.setUpdatedAt(complaint.getUpdatedAt());
         response.setUserName(complaint.getUser().getFullName());
