@@ -15,6 +15,11 @@ frontend/.vite/
 .env
 *.env
 !.env.example
+apikey.md
+APIKEY.md
+*.properties.local
+application-local.properties
+backend/application-local.properties
 
 # Interview Prep & Personal Notes
 INTERVIEW_PREP.md
