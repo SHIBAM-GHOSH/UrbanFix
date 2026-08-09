@@ -51,10 +51,10 @@ flowchart TD
         GroqAI["Groq Cloud API (Llama 3.3 70B)"]
     end
 
-    subgraph SecurityTier ["🛡️ Security & API Gateway Layer"]
-        CORS["CORS & Security Filter Chain"]
-        JWTFilter["JwtAuthenticationFilter"]
-        SpringSec["Spring Security Manager (BCrypt)"]
+    subgraph SecurityTier ["🛡️ Spring Security Filter Chain"]
+        CorsFilter["CorsFilter (CORS Headers)"]
+        JWTFilter["JwtAuthenticationFilter (addFilterBefore)"]
+        SpringSec["SecurityContextHolder & Auth Manager (BCrypt)"]
     end
 
     subgraph ApplicationTier ["⚙️ Backend Application (Spring Boot 3)"]
@@ -91,8 +91,8 @@ flowchart TD
     AiService <-->|"Auto-Categorization & Severity Rating"| GroqAI
 
     %% Client to Backend Communication
-    AxiosClient <-->|"HTTPS / REST (JSON + Bearer JWT)"| CORS
-    CORS --> JWTFilter
+    AxiosClient <-->|"HTTPS / REST (JSON + Bearer JWT)"| CorsFilter
+    CorsFilter --> JWTFilter
     JWTFilter --> SpringSec
 
     %% Controller Dispatching
@@ -221,7 +221,7 @@ erDiagram
 
 ## ☁️ Production Deployment Infrastructure Blueprint
 
-The deployment blueprint specifies the Render Cloud platform blueprint architecture (`render.yaml`) hosting UrbanFix:
+The deployment blueprint below illustrates the containerized cloud architecture (e.g., AWS ECS, S3/CloudFront, RDS) hosting UrbanFix:
 
 ```mermaid
 flowchart LR
@@ -230,31 +230,33 @@ flowchart LR
         AdminDev["💻 Admin Desktop Portal"]
     end
 
-    subgraph RenderCloud ["☁️ Render Cloud Infrastructure (Singapore)"]
-        subgraph FrontendApp ["Frontend Web Service"]
-            StaticSite["React 19 + Vite Static Web App\n(urbanfix-frontend.onrender.com)"]
+    subgraph AWSCloud ["☁️ Cloud Infrastructure (AWS)"]
+        subgraph FrontendApp ["Static Web Host (S3 / CloudFront)"]
+            StaticSite["React 19 + Vite Web App"]
         end
 
-        subgraph BackendApp ["Backend Container Service"]
-            DockerApp["Spring Boot 3 Docker Container\n(urbanfix-backend.onrender.com)"]
-            UploadStore["Persisted File Storage\n(/backend/uploads)"]
+        subgraph BackendApp ["Container App Service (ECS / Docker)"]
+            DockerApp["Spring Boot 3 Container"]
+            UploadStore["Storage Volume (S3 / EFS)"]
         end
 
-        subgraph DatabaseService ["Managed Database Service"]
-            PostgreDB[("Managed PostgreSQL Database\n(urbanfix_db)")]
+        subgraph DatabaseService ["Managed Relational Database (RDS)"]
+            RelationalDB[("MySQL / PostgreSQL Database")]
         end
     end
 
     subgraph ExternalAPIs ["🌐 External APIs"]
-        GoogleMapsAPI["Google Maps Platform\n(Maps JS SDK & Geocoding)"]
+        GoogleMapsAPI["Google Maps Platform (GIS)"]
+        GroqAIAPI["Groq Cloud API (Llama 3.3 70B)"]
     end
 
     CitizenDev -->|"HTTPS"| StaticSite
     AdminDev -->|"HTTPS"| StaticSite
     StaticSite <-->|"REST APIs + Bearer JWT"| DockerApp
-    StaticSite <-->|"Interactive GIS & Pins"| GoogleMapsAPI
-    DockerApp -->|"Multipart Storage"| UploadStore
-    DockerApp <-->|"Spring Data JPA / HikariCP"| PostgreDB
+    StaticSite <-->|"Interactive GIS & Markers"| GoogleMapsAPI
+    DockerApp <-->|"Auto AI Classification"| GroqAIAPI
+    DockerApp -->|"Multipart Photo Storage"| UploadStore
+    DockerApp <-->|"Spring Data JPA / HikariCP"| RelationalDB
 ```
 
 
