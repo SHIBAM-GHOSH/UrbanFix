@@ -35,7 +35,6 @@ public class JwtService {
                             .expiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION))
                             // Sign the token
                             .signWith(getSigningKey())
-
                             .compact();
     }
 
@@ -47,29 +46,25 @@ public class JwtService {
     // Extract all claims from the JWT
     // Throws: ExpiredJwtException (if token expired), SignatureException / MalformedJwtException (if tampered/invalid)
     private Claims extractAllClaims(String token) 
-        {
+        {   
+            //Claims is a special Map<String, Object> interface , its a JSON like  data object
             return Jwts.parser()
                             .verifyWith(getSigningKey())
                             .build()
                             .parseSignedClaims(token)
                             .getPayload();
         }
-    // Extract any claim using a resolver function
-    public <T> T extractClaim( String token,Function<Claims, T> claimsResolver) 
-        {
-            Claims claims = extractAllClaims(token);
-            return claimsResolver.apply(claims);
-        }
+ 
     
     // Extract email stored in JWT
     public String extractUsername(String token) 
         {
-            return extractClaim(token,Claims::getSubject);
+            return extractAllClaims(token).getSubject();
         }
     // Extract token expiration time
     public Date extractExpiration(String token) 
         {
-            return extractClaim(token,Claims::getExpiration);
+            return extractAllClaims(token).getExpiration();
         }
     
     // Check whether the token has expired

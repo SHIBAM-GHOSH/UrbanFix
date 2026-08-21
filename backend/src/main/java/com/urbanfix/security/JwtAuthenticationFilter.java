@@ -24,8 +24,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService1;
     private final CustomUserDetailsService customUserDetailsService1;
 
-    // Throws: ServletException, IOException (on filter chain error)
-    // Throws: JwtException (if token invalid/tampered), UsernameNotFoundException (if user email not in DB)
+    // Throw--- ServletException, IOException (on filter chain error)
+    // Throws --  JwtException (if token invalid/tampered), UsernameNotFoundException (if user email not in DB)
     @Override
     protected void doFilterInternal( HttpServletRequest request,HttpServletResponse response,FilterChain filterChain)
             throws ServletException, IOException 
@@ -34,15 +34,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String authHeader = request.getHeader("Authorization");
 
                 // If no JWT is present, continue to the next filter
-                if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-
-                    filterChain.doFilter(request, response);
-                    return;
-                }
+                if (authHeader == null || !authHeader.startsWith("Bearer ")) 
+                    {
+                        filterChain.doFilter(request, response);
+                        return;
+                    }
 
                 // Extract the JWT by removing "Bearer "
                 String jwt = authHeader.substring(7);
-                // Extract email from the JWT
+                // Extract email from the ,thisalso checks JWT encryption validity
                 String email = jwtService1.extractUsername(jwt);
                 // Authenticate only if no user is currently authenticated
                 if (email != null &&SecurityContextHolder.getContext().getAuthentication() == null)

@@ -14,6 +14,9 @@ import java.util.Map;
 
 import java.util.Map;
 
+//GlobalExceptionHandler converts 
+// raw exceptions into clean JSON error messages for  React frontend:
+
 @ControllerAdvice // Watches all controllers for exceptions
 public class GlobalExceptionHandler {
 
