@@ -24,6 +24,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService1;
     private final CustomUserDetailsService customUserDetailsService1;
 
+    // Throws: ServletException, IOException (on filter chain error)
+    // Throws: JwtException (if token invalid/tampered), UsernameNotFoundException (if user email not in DB)
     @Override
     protected void doFilterInternal( HttpServletRequest request,HttpServletResponse response,FilterChain filterChain)
             throws ServletException, IOException 
@@ -48,8 +50,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         // Validate the JWT expiry date 
                         if (!jwtService1.isTokenExpired(jwt))
                             {       
-                                //now query the data base 
-                                   // Load the user's details from the database
+                                //now query the data base  Load the user's details from the database
+                                //if E-mail not found, it automatically throws UsernameNotFoundException and reject the request.
                                 UserDetails userDetailOBJ =customUserDetailsService1.loadUserByUsername(email);
                                 // Create an Authentication object
                                 UsernamePasswordAuthenticationToken authentication =

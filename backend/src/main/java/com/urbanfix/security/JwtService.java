@@ -45,6 +45,7 @@ public class JwtService {
     }
 
     // Extract all claims from the JWT
+    // Throws: ExpiredJwtException (if token expired), SignatureException / MalformedJwtException (if tampered/invalid)
     private Claims extractAllClaims(String token) 
         {
             return Jwts.parser()
@@ -77,10 +78,5 @@ public class JwtService {
             return extractExpiration(token).before(new Date());
         }
 
-    // Validate JWT against authenticated user
-    public boolean isTokenValid(String token,UserDetails authenticatedUser) 
-        {
-            String email = extractUsername(token);
-            return email.equals(authenticatedUser.getUsername()) && !isTokenExpired(token);
-        }
+   
 }
