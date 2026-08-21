@@ -6,6 +6,8 @@ COPY package*.json ./
 RUN npm ci || npm install
 
 COPY . .
+ARG VITE_GOOGLE_MAPS_API_KEY
+ENV VITE_GOOGLE_MAPS_API_KEY=$AIzaSyDNheqbRLVlvh55sP6Uq3tgyOexA1AE-wU
 RUN npm run build
 
 FROM nginx:alpine
