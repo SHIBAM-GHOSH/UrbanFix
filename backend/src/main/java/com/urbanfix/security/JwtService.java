@@ -56,7 +56,6 @@ public class JwtService {
     // Extract any claim using a resolver function
     public <T> T extractClaim( String token,Function<Claims, T> claimsResolver) 
         {
-
             Claims claims = extractAllClaims(token);
             return claimsResolver.apply(claims);
         }
@@ -64,7 +63,6 @@ public class JwtService {
     // Extract email stored in JWT
     public String extractUsername(String token) 
         {
-
             return extractClaim(token,Claims::getSubject);
         }
     // Extract token expiration time
@@ -74,7 +72,7 @@ public class JwtService {
         }
     
     // Check whether the token has expired
-    private boolean isTokenExpired(String token) 
+    public  boolean isTokenExpired(String token) 
         {
             return extractExpiration(token).before(new Date());
         }
@@ -85,5 +83,4 @@ public class JwtService {
             String email = extractUsername(token);
             return email.equals(authenticatedUser.getUsername()) && !isTokenExpired(token);
         }
-    
 }

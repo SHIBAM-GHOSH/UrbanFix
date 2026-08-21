@@ -31,6 +31,7 @@ import AccountCircleRoundedIcon from '@mui/icons-material/AccountCircleRounded';
 import BarChartRoundedIcon from '@mui/icons-material/BarChartRounded';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import RouteRoundedIcon from '@mui/icons-material/RouteRounded';
 import { clearToken } from '../../utils/auth';
 import { getCurrentUser } from '../../services/userService';
 
@@ -43,6 +44,7 @@ const userLinks = [
 const adminLinks = [
   { icon: <AdminPanelSettingsRoundedIcon />, label: 'Admin Triage', to: '/admin' },
   { icon: <AssignmentRoundedIcon />, label: 'Manage Queue', to: '/admin/complaints' },
+  { icon: <RouteRoundedIcon />, label: 'Route Planner', to: '/admin/routes' },
 ];
 
 function getInitials(name) {
@@ -119,7 +121,16 @@ function AppHeader() {
           display: { xs: 'none', md: 'inline-flex' },
           whiteSpace: 'nowrap',
           fontWeight: 700,
+          fontSize: '0.875rem',
+          px: 1.5,
+          py: 0.75,
           borderRadius: 2,
+          '& .MuiButton-startIcon': {
+            mr: 0.75,
+            '& > *': {
+              fontSize: '1.15rem !important',
+            },
+          },
         }}
       >
         {link.label}

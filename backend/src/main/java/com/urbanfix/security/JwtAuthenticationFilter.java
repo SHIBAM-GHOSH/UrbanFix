@@ -25,8 +25,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final CustomUserDetailsService customUserDetailsService1;
 
     @Override
-    protected void doFilterInternal( HttpServletRequest request,HttpServletResponse response,
-                                    FilterChain filterChain)
+    protected void doFilterInternal( HttpServletRequest request,HttpServletResponse response,FilterChain filterChain)
             throws ServletException, IOException 
             {
                 // Read the Authorization header
@@ -46,27 +45,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // Authenticate only if no user is currently authenticated
                 if (email != null &&SecurityContextHolder.getContext().getAuthentication() == null)
                     {
-
-                        // Load the user's details from the database
-                        UserDetails authenticatedUser =
-                                customUserDetailsService1.loadUserByUsername(email);
-
-                        // Validate the JWT
-                        if (jwtService1.isTokenValid(jwt, authenticatedUser))
-                            {
+                        // Validate the JWT expiry date 
+                        if (!jwtService1.isTokenExpired(jwt))
+                            {       
+                                //now query the data base 
+                                   // Load the user's details from the database
+                                UserDetails userDetailOBJ =customUserDetailsService1.loadUserByUsername(email);
                                 // Create an Authentication object
                                 UsernamePasswordAuthenticationToken authentication =
-                                        new UsernamePasswordAuthenticationToken(
-                                                authenticatedUser,
-                                                null,
-                                                authenticatedUser.getAuthorities()
-                                        );
+                                                     new UsernamePasswordAuthenticationToken(userDetailOBJ,null,userDetailOBJ.getAuthorities());
 
                                 // Attach request-specific details
-                                authentication.setDetails(
-                                        new WebAuthenticationDetailsSource()
-                                                .buildDetails(request)
-                                );
+                                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                                 // Store the authenticated user in the SecurityContext
                                 SecurityContextHolder.getContext().setAuthentication(authentication);

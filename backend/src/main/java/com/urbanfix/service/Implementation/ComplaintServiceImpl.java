@@ -101,23 +101,24 @@ public class ComplaintServiceImpl implements ComplaintService {
                 ComplaintResponseDTO response = complaintMapper1.mapToResponse(complaint);
                 responseList.add(response);
             }
-
             return responseList;
 
         }
 
     // Fetch single complaint details by ID
     @Override
-    public ComplaintResponseDTO getComplaintById(Long complaintId) {
-        Complaint complaint = complaintRepository1.findById(complaintId)
-                .orElseThrow(() -> new ResourceNotFoundException("Complaint not found with id: " + complaintId));
+    public ComplaintResponseDTO getComplaintById(Long complaintId)
+        {
+            Complaint complaint = complaintRepository1.findById(complaintId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Complaint not found with id: " + complaintId));
 
-        return complaintMapper1.mapToResponse(complaint);
-    }
+            return complaintMapper1.mapToResponse(complaint);
+        }
 
     // Update title, description, category, or location of a complaint (Creator only)
     @Override
-    public ComplaintResponseDTO updateComplaint(Long complaintId, ComplaintRequestDTO request) {
+    public ComplaintResponseDTO updateComplaint(Long complaintId, ComplaintRequestDTO request) 
+    {
         Complaint complaint = complaintRepository1.findById(complaintId)
                 .orElseThrow(() -> new ResourceNotFoundException("Complaint not found with id: " + complaintId));
 

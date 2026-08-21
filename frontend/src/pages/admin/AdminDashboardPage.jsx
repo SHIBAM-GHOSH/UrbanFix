@@ -29,7 +29,6 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recha
 import StatCard from '../../components/dashboard/StatCard';
 import EmptyState from '../../components/shared/EmptyState';
 import ComplaintOverviewMap from '../../components/maps/ComplaintOverviewMap';
-import AdminRoutePlanner from '../../components/admin/AdminRoutePlanner';
 import {
   getAdminDashboardStatistics,
   getAdminComplaints,
@@ -187,19 +186,10 @@ function AdminDashboardPage() {
 
         {error && <Alert severity="error">{error}</Alert>}
 
-        {/* KPI Stat Cards */}
-        <Grid container spacing={2.5}>
-          {statCards.map((stat) => (
-            <Grid key={stat.label} size={{ xs: 12, sm: 6, lg: 3 }}>
-              {loading ? <Skeleton height={140} variant="rounded" sx={{ borderRadius: 3 }} /> : <StatCard {...stat} />}
-            </Grid>
-          ))}
-        </Grid>
-
-        {/* Charts & Recent Stream Grid */}
-        <Grid container spacing={3}>
-          {/* Category Analytics Chart */}
-          <Grid size={{ xs: 12, lg: 5 }}>
+        {/* Main Analytics & Stat Cards Grid */}
+        <Grid container spacing={3} alignItems="stretch">
+          {/* Left Column: Complaints by Category Analytics Chart */}
+          <Grid size={{ xs: 12, md: 7 }}>
             <Paper
               elevation={0}
               sx={{
@@ -220,9 +210,9 @@ function AdminDashboardPage() {
               </Typography>
 
               {loading ? (
-                <Skeleton height={260} variant="rounded" sx={{ borderRadius: 2 }} />
+                <Skeleton height={280} variant="rounded" sx={{ borderRadius: 2 }} />
               ) : categories.length > 0 ? (
-                <Box sx={{ width: '100%', height: 280, mt: 'auto' }}>
+                <Box sx={{ width: '100%', height: 320, my: 'auto' }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -231,8 +221,8 @@ function AdminDashboardPage() {
                         nameKey="category"
                         cx="50%"
                         cy="50%"
-                        innerRadius={60}
-                        outerRadius={95}
+                        innerRadius={65}
+                        outerRadius={105}
                         paddingAngle={3}
                       >
                         {categories.map((entry, index) => (
@@ -253,211 +243,17 @@ function AdminDashboardPage() {
             </Paper>
           </Grid>
 
-          {/* Incoming Complaint Stream */}
-          <Grid size={{ xs: 12, lg: 7 }}>
-            <Paper
-              elevation={0}
-              sx={{
-                p: 3,
-                borderRadius: 3,
-                border: '1px solid',
-                borderColor: 'divider',
-                height: '100%',
-              }}
-            >
-              <Stack spacing={2.5}>
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Box>
-                    <Typography variant="h3" fontWeight={800}>
-                      Incoming Complaints Queue
-                    </Typography>
-                    <Typography color="text.secondary" variant="body2">
-                      Recent reports requiring status assignment or review.
-                    </Typography>
-                  </Box>
-                  <Button
-                    component={RouterLink}
-                    endIcon={<ArrowForwardRoundedIcon />}
-                    to="/admin/complaints"
-                    size="small"
-                    sx={{ fontWeight: 700 }}
-                  >
-                    View Queue
-                  </Button>
-                </Stack>
-
-                {loading ? (
-                  <Stack spacing={1.5}>
-                    <Skeleton height={60} variant="rounded" />
-                    <Skeleton height={60} variant="rounded" />
-                    <Skeleton height={60} variant="rounded" />
-                  </Stack>
-                ) : recentComplaints.length > 0 ? (
-                  <Stack spacing={1.5}>
-                    {recentComplaints.map((item) => {
-                      const statusCfg = STATUS_CONFIG[item.status] || { bg: '#E2E8F0', color: '#334155', label: item.status };
-                      return (
-                        <Paper
-                          key={item.id}
-                          elevation={0}
-                          component={RouterLink}
-                          to={`/complaints/${item.id}`}
-                          sx={{
-                            p: 2,
-                            borderRadius: 2,
-                            border: '1px solid',
-                            borderColor: 'divider',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            textDecoration: 'none',
-                            color: 'inherit',
-                            transition: 'all 0.2s ease',
-                            '&:hover': {
-                              borderColor: 'primary.main',
-                              bgcolor: 'action.hover',
-                            },
-                          }}
-                        >
-                          <Stack spacing={0.5} sx={{ minWidth: 0, flex: 1, pr: 2 }}>
-                            <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
-                              <Typography fontWeight={800} variant="body2" noWrap sx={{ maxWidth: 300 }}>
-                                {item.title}
-                              </Typography>
-                              <Chip
-                                label={statusCfg.label}
-                                size="small"
-                                sx={{ bgcolor: statusCfg.bg, color: statusCfg.color, fontWeight: 800, height: 20, fontSize: '0.7rem' }}
-                              />
-                            </Stack>
-                            <Stack direction="row" alignItems="center" spacing={1.5} color="text.secondary">
-                              <Typography variant="caption">{item.category}</Typography>
-                              {item.location && (
-                                <Stack direction="row" alignItems="center" spacing={0.25}>
-                                  <PlaceRoundedIcon sx={{ fontSize: 14 }} color="action" />
-                                  <Typography variant="caption" noWrap sx={{ maxWidth: 160 }}>
-                                    {item.location}
-                                  </Typography>
-                                </Stack>
-                              )}
-                              <Typography variant="caption" color="text.disabled">
-                                • {formatDate(item.createdAt)}
-                              </Typography>
-                            </Stack>
-                          </Stack>
-                          <ArrowForwardRoundedIcon color="action" fontSize="small" />
-                        </Paper>
-                      );
-                    })}
-                  </Stack>
-                ) : (
-                  <EmptyState description="No active complaints in queue." title="Queue Empty" />
-                )}
-              </Stack>
-            </Paper>
+          {/* Right Column: 4 KPI Stat Cards Stacked Vertically */}
+          <Grid size={{ xs: 12, md: 5 }}>
+            <Stack spacing={2} sx={{ height: '100%', justifyContent: 'space-between' }}>
+              {statCards.map((stat) => (
+                <Box key={stat.label} sx={{ flex: 1 }}>
+                  {loading ? <Skeleton height={90} variant="rounded" sx={{ borderRadius: 3 }} /> : <StatCard {...stat} />}
+                </Box>
+              ))}
+            </Stack>
           </Grid>
         </Grid>
-
-        {/* Quick Triage Actions */}
-        <Box>
-          <Typography variant="h3" fontWeight={800} sx={{ mb: 2 }}>
-            Triage & Filter Shortcuts
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <Card
-                component={RouterLink}
-                to="/admin/complaints?status=PENDING"
-                elevation={0}
-                sx={{
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  borderRadius: 2.5,
-                  p: 2.5,
-                  textDecoration: 'none',
-                  color: 'inherit',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 2,
-                  transition: 'all 0.2s ease-in-out',
-                  '&:hover': { borderColor: 'warning.main', transform: 'translateY(-2px)' },
-                }}
-              >
-                <PendingActionsRoundedIcon color="warning" sx={{ fontSize: 36 }} />
-                <Box>
-                  <Typography fontWeight={800} variant="body1">
-                    Pending Queue ({pending})
-                  </Typography>
-                  <Typography color="text.secondary" variant="caption">
-                    Issues awaiting initial response assignment.
-                  </Typography>
-                </Box>
-              </Card>
-            </Grid>
-
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <Card
-                component={RouterLink}
-                to="/admin/complaints?status=IN_PROGRESS"
-                elevation={0}
-                sx={{
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  borderRadius: 2.5,
-                  p: 2.5,
-                  textDecoration: 'none',
-                  color: 'inherit',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 2,
-                  transition: 'all 0.2s ease-in-out',
-                  '&:hover': { borderColor: 'primary.main', transform: 'translateY(-2px)' },
-                }}
-              >
-                <TimelapseRoundedIcon color="primary" sx={{ fontSize: 36 }} />
-                <Box>
-                  <Typography fontWeight={800} variant="body1">
-                    In Progress ({inProgress})
-                  </Typography>
-                  <Typography color="text.secondary" variant="caption">
-                    Active municipal work orders under repair.
-                  </Typography>
-                </Box>
-              </Card>
-            </Grid>
-
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <Card
-                component={RouterLink}
-                to="/admin/complaints?status=RESOLVED"
-                elevation={0}
-                sx={{
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  borderRadius: 2.5,
-                  p: 2.5,
-                  textDecoration: 'none',
-                  color: 'inherit',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 2,
-                  transition: 'all 0.2s ease-in-out',
-                  '&:hover': { borderColor: 'success.main', transform: 'translateY(-2px)' },
-                }}
-              >
-                <CheckCircleRoundedIcon color="success" sx={{ fontSize: 36 }} />
-                <Box>
-                  <Typography fontWeight={800} variant="body1">
-                    Resolved Archive ({resolved})
-                  </Typography>
-                  <Typography color="text.secondary" variant="caption">
-                    Completed civic repairs and verified fixes.
-                  </Typography>
-                </Box>
-              </Card>
-            </Grid>
-          </Grid>
-        </Box>
 
         {/* Municipal Geographic Operations Map */}
         <Paper
@@ -481,9 +277,6 @@ function AdminDashboardPage() {
             <ComplaintOverviewMap complaints={recentComplaints} height={420} />
           </Stack>
         </Paper>
-
-        {/* Field Inspection Route Planner */}
-        <AdminRoutePlanner complaints={recentComplaints} />
       </Stack>
     </Container>
   );
