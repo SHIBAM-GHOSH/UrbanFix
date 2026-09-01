@@ -76,9 +76,9 @@ public class FileStorageServiceImpl implements FileStorageService {
     /**
      * Uploads the file stream directly to AWS S3 bucket and returns the public HTTPS URL.
      */
-    private String uploadToS3(MultipartFile file, String fileName, String contentType) {
+    private String uploadToS3(MultipartFile file, String uniqueFileName, String contentType) {
         try {
-            String s3Key = "uploads/" + fileName;
+            String s3Key = "uploads/" + uniqueFileName; //file nameis unigie to evry photo
 
             // Build S3 upload request with content type (so browser opens image properly)
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
