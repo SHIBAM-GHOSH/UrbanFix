@@ -1,15 +1,17 @@
 # 🏙️ UrbanFix - Civic Issue Reporting & Management Platform
 
-UrbanFix is a production-grade full-stack civic engagement platform that enables citizens to report public infrastructure issues with GPS coordinates, descriptions, and photo evidence.
+UrbanFix is a production-grade full-stack civic engagement platform that enables citizens to report public infrastructure issues with GPS coordinates, detailed descriptions, AI-assisted complaint classification, and photo evidence stored on cloud object storage.
 
 ---
 
 ## ✨ Features Implemented
 
-- **Authentication & Security**: Stateless JWT auth, Spring Security RBAC (`CITIZEN` / `ADMIN`), BCrypt password hashing.
-- **Civic Reporting**: Issue reporting with Google Maps GPS pin-drop, reverse-geocoding, photo uploads, and status feeds.
-- **AI Classification (Groq)**: Automated complaint categorization & severity scoring via Groq API (`llama-3.3-70b-versatile`).
-- **Admin Dashboard**: Triage management (`PENDING` → `IN_PROGRESS` → `RESOLVED` / `REJECTED`) & Recharts analytics.
+- **Authentication & Security**: Stateless JWT authentication, Spring Security RBAC (`CITIZEN` / `ADMIN`), BCrypt password hashing.
+- **Civic Reporting**: Issue reporting with Google Maps interactive pin-drop, browser geolocation, reverse-geocoding, photo uploads, and real-time status feeds.
+- **AI Triage & Classification (Groq)**: Automated complaint categorization & severity scoring via Groq Cloud API (`llama-3.3-70b-versatile`).
+- **Cloud Evidence Storage (AWS S3)**: Scalable object storage integration for civic complaint photos and evidence.
+- **Admin Dashboard**: Triage lifecycle management (`PENDING` → `IN_PROGRESS` → `RESOLVED` / `REJECTED`) & Recharts interactive telemetry analytics.
+- **Containerized Cloud Infrastructure**: Built with Docker multi-stage builds and deployed on **AWS EC2** backed by **AWS RDS PostgreSQL**.
 
 ---
 
@@ -19,25 +21,32 @@ UrbanFix is a production-grade full-stack civic engagement platform that enables
 - **Framework**: React 19 + Vite 6
 - **UI Library**: Material UI (MUI v7)
 - **GIS & Mapping**: `@vis.gl/react-google-maps` (Google Maps JS SDK + Geocoding API)
-- **Analytics & HTTP**: Recharts v2, Axios (JWT interceptors)
+- **Analytics & HTTP**: Recharts v2, Axios (JWT Bearer interceptors)
+- **Web Server / Runtime**: Nginx (Alpine) containerized via multi-stage Docker build
 
 ### Backend (`backend/`)
 - **Core Framework**: Java 21, Spring Boot 3.4
 - **Security**: Spring Security, JWT (JJWT v0.12), BCrypt
-- **AI Service**: Groq Cloud API (`llama-3.3-70b-versatile`) via RestTemplate
-- **Database & ORM**: MySQL 8 / PostgreSQL, Spring Data JPA, Hibernate
+- **AI Integration**: Groq Cloud API (`llama-3.3-70b-versatile`) via RestTemplate
+- **Cloud Storage**: AWS S3 (AWS SDK v2 `software.amazon.awssdk:s3`) for complaint photo evidence
+- **Database & ORM**: AWS RDS PostgreSQL, Spring Data JPA, Hibernate (`PostgreSQLDialect`)
 - **API Documentation**: OpenAPI 3.1 / Swagger UI
+
+### Infrastructure & Cloud Deployment (AWS)
+- **Hosting / Compute**: AWS EC2 Instance (Linux) running Docker & Docker Compose
+- **Database Service**: AWS RDS PostgreSQL (Managed Relational Database)
+- **Object Storage**: AWS S3 Bucket (`urbanfix-uploads`)
+- **Containerization**: Docker & Docker Compose (`docker-compose.yml`)
 
 ---
 
-
 ## 🏛️ System Architecture
 
-UrbanFix follows an enterprise 3-tier web application architecture featuring stateless RESTful communication, declarative security filtering, client-side GIS mapping, and dynamic database querying.
+UrbanFix follows an enterprise 3-tier web application architecture featuring stateless RESTful communication, declarative security filtering, client-side GIS mapping, AI classification, AWS S3 file persistence, and AWS RDS PostgreSQL relational storage.
 
 ```mermaid
 flowchart TD
-    subgraph ClientTier ["🖥️ Frontend Client (React 19 + Vite)"]
+    subgraph ClientTier ["🖥️ Frontend Client (React 19 + Vite + Nginx)"]
         UI["Material UI v7 Components"]
         Router["React Router v7"]
         MapsSDK["Google Maps JS SDK (@vis.gl)"]
@@ -45,7 +54,7 @@ flowchart TD
         AxiosClient["Axios HTTP Client (JWT Interceptor)"]
     end
 
-    subgraph ExternalServices ["🌐 External Cloud Services"]
+    subgraph ExternalServices ["🌐 External Cloud APIs"]
         GoogleGeocoding["Google Geocoding API"]
         GoogleMapsTile["Google Maps Platform Tiles"]
         GroqAI["Groq Cloud API (Llama 3.3 70B)"]
@@ -57,7 +66,7 @@ flowchart TD
         SpringSec["SecurityContextHolder & Auth Manager (BCrypt)"]
     end
 
-    subgraph ApplicationTier ["⚙️ Backend Application (Spring Boot 3)"]
+    subgraph ApplicationTier ["⚙️ Backend Application (Spring Boot 3 on AWS EC2)"]
         AuthController["AuthController"]
         ComplaintController["ComplaintController"]
         AdminController["AdminController"]
@@ -65,7 +74,7 @@ flowchart TD
         
         AuthService["AuthServiceImpl"]
         ComplaintService["ComplaintServiceImpl"]
-        FileService["FileStorageServiceImpl"]
+        FileService["FileStorageServiceImpl (AWS S3)"]
         AiService["AiServiceImpl (Groq API)"]
         UserService["UserServiceImpl"]
         
@@ -73,10 +82,10 @@ flowchart TD
         GlobalException["GlobalExceptionHandler (@ControllerAdvice)"]
     end
 
-    subgraph PersistenceTier ["💾 Data & Storage Layer"]
+    subgraph CloudPersistence ["☁️ AWS Cloud Persistence Layer"]
         JPA["Spring Data JPA & Hibernate ORM"]
-        Database[("MySQL / PostgreSQL Database")]
-        LocalStorage["File System / Photo Uploads Directory"]
+        Database[("AWS RDS PostgreSQL Database")]
+        S3Storage["AWS S3 Bucket (urbanfix-uploads)"]
     end
 
     %% Client Interactions
@@ -111,35 +120,37 @@ flowchart TD
     ComplaintService --> Mapper
     ComplaintService --> FileService
     ComplaintService --> AiService
-    FileService --> LocalStorage
+    FileService -->|"PutObject Request (AWS SDK v2)"| S3Storage
     ComplaintService --> JPA
     AuthService --> JPA
     UserService --> JPA
 
     %% Persistence to DB
-    JPA <--> Database
+    JPA <-->|"HikariCP / PostgreSQL JDBC"| Database
 ```
+
+---
 
 ### 🔄 End-to-End Data & Request Lifecycle
 
 1. **Authentication & Authorization Pipeline**:
    - User submits credentials (`email`, `password`) via React login form.
    - Spring Security authenticates identity using BCrypt password verification.
-   - Upon validation, `JwtService` issues a signed JSON Web Token (JWT) with an expiration claim.
+   - Upon validation, `JwtService` issues a signed JSON Web Token (JWT).
    - React stores the JWT token locally; Axios request interceptors automatically append `Authorization: Bearer <token>` to every subsequent REST request.
    - `JwtAuthenticationFilter` validates token signature on incoming requests and injects `SecurityContextHolder` credentials.
 
-2. **Civic Complaint Reporting & AI Triage Pipeline**:
+2. **Civic Complaint Reporting & AWS S3 Evidence Storage**:
    - Citizen drops an interactive pin on `LocationPickerMap` or triggers browser GPS positioning.
    - Frontend calls Google Geocoding API to resolve coordinates (`lat`, `lng`) into a street address.
    - Submitting the form sends a `multipart/form-data` payload (`JSON metadata` + `Photo Evidence File`).
-   - `FileStorageServiceImpl` validates and persists the image evidence file to storage.
+   - `FileStorageServiceImpl` delegates file upload to **AWS S3** (`storage.provider=s3`) using AWS SDK v2 (`S3Client`), generating a public HTTPS URL (`https://<bucket>.s3.<region>.amazonaws.com/uploads/<filename>`).
    - `AiServiceImpl` calls **Groq Cloud API (`llama-3.3-70b-versatile`)** to automatically classify issue category, evaluate severity (`HIGH`/`MEDIUM`/`LOW`), and generate a structured description.
-   - `ComplaintServiceImpl` transforms the DTO into a `Complaint` JPA entity with initial `PENDING` status and commits to database via Hibernate.
+   - `ComplaintServiceImpl` transforms the DTO into a `Complaint` JPA entity with initial `PENDING` status and commits to **AWS RDS PostgreSQL** via Hibernate.
 
 3. **Admin Telemetry & Operations Pipeline**:
    - Municipal admins access `/admin/dashboard` protected by `@PreAuthorize("hasRole('ADMIN')")`.
-   - Spring Boot executes dynamic JPA `Specification` queries and custom aggregation repository methods (`COUNT(c.status)`, `GROUP BY category`).
+   - Spring Boot executes dynamic JPA `Specification` queries and custom aggregation repository methods on **AWS RDS PostgreSQL** (`COUNT(c.status)`, `GROUP BY category`).
    - Frontend renders citywide geographic complaint pins via `ComplaintOverviewMap` color-coded by status alongside Recharts telemetry graphs.
    - Status transitions (`PENDING` → `IN_PROGRESS` → `RESOLVED` / `REJECTED`) execute optimistic database updates with updated timestamps.
 
@@ -156,7 +167,7 @@ sequenceDiagram
     participant AuthSvc as AuthServiceImpl
     participant SecMgr as AuthenticationManager
     participant JwtSvc as JwtService
-    participant DB as Database (MySQL/PostgreSQL)
+    participant DB as AWS RDS PostgreSQL
 
     User->>React: 1. Enter Credentials (Email & Password)
     React->>AuthCtrl: 2. POST /api/auth/login
@@ -184,8 +195,9 @@ sequenceDiagram
 
 ---
 
-
 ## 📊 Database Architecture
+
+UrbanFix relies on **AWS RDS PostgreSQL** for relational persistence:
 
 ```mermaid
 erDiagram
@@ -219,9 +231,9 @@ erDiagram
 
 ---
 
-## ☁️ Production Deployment Infrastructure Blueprint
+## ☁️ Production AWS Infrastructure Blueprint
 
-The deployment blueprint below illustrates the containerized cloud architecture (e.g., AWS ECS, S3/CloudFront, RDS) hosting UrbanFix:
+The deployment blueprint below illustrates the containerized AWS cloud architecture hosting UrbanFix:
 
 ```mermaid
 flowchart LR
@@ -230,35 +242,34 @@ flowchart LR
         AdminDev["💻 Admin Desktop Portal"]
     end
 
-    subgraph AWSCloud ["☁️ Cloud Infrastructure (AWS)"]
-        subgraph FrontendApp ["Static Web Host (S3 / CloudFront)"]
-            StaticSite["React 19 + Vite Web App"]
+    subgraph AWSCloud ["☁️ AWS Cloud Infrastructure"]
+        subgraph EC2Host ["AWS EC2 Instance (Docker Compose)"]
+            FrontendContainer["React 19 + Nginx Container (Port 80)"]
+            BackendContainer["Spring Boot 3 Container (Port 5050)"]
         end
 
-        subgraph BackendApp ["Container App Service (ECS / Docker)"]
-            DockerApp["Spring Boot 3 Container"]
-            UploadStore["Storage Volume (S3 / EFS)"]
+        subgraph S3Storage ["AWS S3 Storage"]
+            S3Bucket["AWS S3 Bucket (urbanfix-uploads)"]
         end
 
-        subgraph DatabaseService ["Managed Relational Database (RDS)"]
-            RelationalDB[("MySQL / PostgreSQL Database")]
+        subgraph RDSInstance ["AWS Managed Database"]
+            RDSPostgres[("AWS RDS PostgreSQL Database")]
         end
     end
 
-    subgraph ExternalAPIs ["🌐 External APIs"]
+    subgraph ExternalAPIs ["🌐 External Services"]
         GoogleMapsAPI["Google Maps Platform (GIS)"]
         GroqAIAPI["Groq Cloud API (Llama 3.3 70B)"]
     end
 
-    CitizenDev -->|"HTTPS"| StaticSite
-    AdminDev -->|"HTTPS"| StaticSite
-    StaticSite <-->|"REST APIs + Bearer JWT"| DockerApp
-    StaticSite <-->|"Interactive GIS & Markers"| GoogleMapsAPI
-    DockerApp <-->|"Auto AI Classification"| GroqAIAPI
-    DockerApp -->|"Multipart Photo Storage"| UploadStore
-    DockerApp <-->|"Spring Data JPA / HikariCP"| RelationalDB
+    CitizenDev -->|"HTTPS (Port 80)"| FrontendContainer
+    AdminDev -->|"HTTPS (Port 80)"| FrontendContainer
+    FrontendContainer <-->|"REST APIs + Bearer JWT"| BackendContainer
+    FrontendContainer <-->|"Interactive GIS & Markers"| GoogleMapsAPI
+    BackendContainer <-->|"Auto AI Classification"| GroqAIAPI
+    BackendContainer -->|"AWS SDK v2 Upload (S3 PutObject)"| S3Bucket
+    BackendContainer <-->|"JDBC / PostgreSQL Dialect"| RDSPostgres
 ```
-
 
 ---
 
@@ -268,21 +279,29 @@ flowchart LR
 UrbanFix/ (Root)
 ├── backend/
 │   ├── src/                    # Spring Boot Application Source
+│   │   └── main/java/com/urbanfix/
+│   │       ├── config/         # AwsS3Config & Security Configurations
+│   │       ├── controller/     # REST API Controllers
+│   │       ├── entity/         # JPA Entities (User, Complaint)
+│   │       ├── repository/     # Spring Data JPA Repositories
+│   │       └── service/        # FileStorageServiceImpl (AWS S3), AiServiceImpl
 │   ├── .mvn/                   # Maven wrapper binaries
 │   ├── mvnw                    # Maven wrapper script (Linux/macOS)
 │   ├── mvnw.cmd                # Maven wrapper script (Windows)
-│   ├── pom.xml                 # Maven POM configuration
-│   ├── HELP.md                 # Spring Boot help guide
-│   └── uploads/                # Uploaded civic issue photos storage
+│   ├── pom.xml                 # Maven POM configuration (Java 21, AWS SDK v2)
+│   └── src/main/resources/     # application.properties (PostgreSQL & S3 config)
 │
 ├── frontend/
 │   ├── src/                    # React 19 + MUI Application Source
 │   ├── public/                 # Static assets & favicon
+│   ├── Dockerfile              # Multi-stage Docker build (Node + Nginx)
+│   ├── nginx.conf              # Production Nginx reverse proxy configuration
 │   ├── package.json            # npm dependencies & scripts
-│   ├── vite.config.js          # Vite build & proxy configuration
-│   └── openapi.json            # OpenAPI 3.1 specification reference
+│   └── vite.config.js          # Vite build & proxy configuration
 │
-├── .gitignore                  # Root Git ignore rules (build artifacts, node_modules)
+├── Dockerfile                  # Backend production Dockerfile (OpenJDK 21 Alpine)
+├── docker-compose.yml          # Container orchestration (AWS EC2 ready)
+├── .gitignore                  # Root Git ignore rules
 ├── AGENTS.md                   # AI & developer guidelines
 └── README.md                   # Complete platform documentation & setup guide
 ```
@@ -300,7 +319,7 @@ UrbanFix/ (Root)
 ### Complaints (Citizen)
 | Method | Endpoint | Access | Description |
 | :--- | :--- | :--- | :--- |
-| `POST` | `/api/complaints` | Authenticated | Create a new complaint (multipart form data) |
+| `POST` | `/api/complaints` | Authenticated | Create a new complaint (multipart form data, uploads photo to S3) |
 | `GET` | `/api/complaints/my` | Authenticated | Fetch current user's submitted complaints |
 | `GET` | `/api/complaints/{id}` | Authenticated | Fetch single complaint details by ID |
 | `PUT` | `/api/complaints/{id}` | Owner Only | Update complaint details |
@@ -317,42 +336,84 @@ UrbanFix/ (Root)
 
 ---
 
-## ⚙️ Local Setup & Running Instructions
+## ⚙️ Environment Configuration & Deployment Setup
 
-### 1. Database Configuration (MySQL)
-Create a MySQL database named `urbanfix_db`:
-```sql
-CREATE DATABASE urbanfix_db;
+### 🔑 Required Environment Variables
+
+Create a `.env` file in the root directory (or pass via AWS EC2 environment):
+
+```env
+# AWS RDS PostgreSQL Database Configuration
+SPRING_DATASOURCE_URL=jdbc:postgresql://<your-rds-endpoint>.rds.amazonaws.com:5432/urbanfix_db
+SPRING_DATASOURCE_USERNAME=postgres
+SPRING_DATASOURCE_PASSWORD=your_rds_password
+
+# AWS S3 Storage Credentials
+STORAGE_PROVIDER=s3
+AWS_S3_BUCKET_NAME=urbanfix-uploads
+AWS_REGION=ap-south-1
+AWS_ACCESS_KEY_ID=YOUR_AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY=YOUR_AWS_SECRET_ACCESS_KEY
+
+# External APIs
+GROQ_API_KEY=gsk_your_groq_api_key
+VITE_GOOGLE_MAPS_API_KEY=AIzaSyYourGoogleMapsApiKey
 ```
 
-Update `backend/src/main/resources/application.properties` with your database credentials:
-```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/urbanfix_db?useSSL=false&serverTimezone=UTC
-spring.datasource.username=YOUR_MYSQL_USERNAME
-spring.datasource.password=YOUR_MYSQL_PASSWORD
+---
 
-jwt.secret=YOUR_64_CHARACTER_BASE64_SECRET_KEY
-jwt.expiration=86400000
-```
+### ☁️ AWS EC2 Docker Deployment
 
-### 2. Start Backend Server (Spring Boot)
-In the `backend/` directory:
+1. **SSH into your AWS EC2 Instance**:
+   ```bash
+   ssh -i your-key.pem ubuntu@your-ec2-public-ip
+   ```
+
+2. **Clone the repository & navigate to project root**:
+   ```bash
+   git clone https://github.com/SHIBAM-GHOSH/UrbanFix.git
+   cd UrbanFix
+   ```
+
+3. **Configure Environment Variables**:
+   Create `.env` file with your AWS RDS, AWS S3, Groq, and Google Maps keys:
+   ```bash
+   nano .env
+   ```
+
+4. **Launch Application using Docker Compose**:
+   ```bash
+   docker-compose up -d --build
+   ```
+
+5. **Verify Running Containers**:
+   ```bash
+   docker ps
+   ```
+   - **Frontend (Nginx SPA)**: `http://<ec2-public-ip>:80`
+   - **Backend (Spring Boot REST API)**: `http://<ec2-public-ip>:5050`
+   - **Swagger Documentation**: `http://<ec2-public-ip>:5050/swagger-ui.html`
+
+---
+
+### 💻 Local Development Setup
+
+#### 1. Backend Setup
+In the `backend/` directory, set environment variables or edit `application-local.properties` (ignored by Git):
 ```bash
 cd backend
 ./mvnw spring-boot:run
 ```
-- Backend REST APIs run on: `http://localhost:5050`
-- Swagger API Documentation: `http://localhost:5050/swagger-ui.html`
+- Backend REST APIs run on `http://localhost:5050`
 
-### 3. Start Frontend Development Server (React + Vite)
+#### 2. Frontend Setup
 In the `frontend/` directory:
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-- Frontend application runs on: `http://localhost:5173`
-- Vite automatically proxies `/api/*` and `/uploads/*` requests to `http://localhost:5050`.
+- Frontend application runs on `http://localhost:5173`
 
 ---
 
