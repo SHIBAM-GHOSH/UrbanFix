@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+//for getting User Dashboard detaila in JSON format
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {

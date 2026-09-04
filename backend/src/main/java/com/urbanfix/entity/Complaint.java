@@ -56,9 +56,12 @@ public class Complaint {
     private LocalDateTime updatedAt;
 
     // User who created the complaint
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    //here User is JAVA_ENTITY_CLASS
+    //user is VARIABLE_NAME
+    @ManyToOne(fetch = FetchType.LAZY)//@JoinColumn(name = "FOREIGN_KEY_COLUMN_NAME_IN_CURRENT_TABLE")
+    @JoinColumn(name = "user_id") //private JAVA_ENTITY_CLASS variableName;
     private User user;
+
 
     public Complaint() {
     }
