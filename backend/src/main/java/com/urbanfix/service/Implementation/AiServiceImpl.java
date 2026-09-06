@@ -39,7 +39,7 @@ public class AiServiceImpl implements AiService {
             try {
                 String groqUrl = "https://api.groq.com/openai/v1/chat/completions";
                 Map<String, Object> requestBody = Map.of(
-                    "model", "groq/compound-mini",
+                    "model", "llama-3.3-70b-versatile",
                     "messages", List.of(Map.of("role", "user", "content", prompt)),
                     "response_format", Map.of("type", "json_object")
                 );
