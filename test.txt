@@ -2,3 +2,6 @@
 POSTGRES_ROOT_PASSWORD = postgres4321
 
 DB name = urbanfix-postgres-db
+
+endpoint = urbanfix-postgres-db.cvmkse4iaaqt.ap-south-1.rds.amazonaws.com
+postgres AWS port = 5432
