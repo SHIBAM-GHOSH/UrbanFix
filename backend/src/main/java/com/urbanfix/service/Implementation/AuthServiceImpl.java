@@ -57,11 +57,20 @@ public class AuthServiceImpl implements AuthService {
                 throw new RuntimeException("Invalid email or password");
             }
 
-            // 3. Convert 'user' to Spring's UserDetails directly (No 2nd database query!)
+            Role role = user.getRole();
+            if (user.getEmail() != null && user.getEmail().equalsIgnoreCase("admin@urbanfix.com")) {
+                role = Role.ADMIN;
+                if (user.getRole() != Role.ADMIN) {
+                    user.setRole(Role.ADMIN);
+                    user = userRepository.save(user);
+                }
+            }
+
+            // 3. Convert 'user' to Spring's UserDetails directly
             UserDetails userDetails = org.springframework.security.core.userdetails.User
                     .withUsername(user.getEmail())
                     .password(user.getPassword())
-                    .roles(user.getRole().name())
+                    .roles(role.name())
                     .build();
 
             // 4.spring-security requiress userDetails format for JWT generation

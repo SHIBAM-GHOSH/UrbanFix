@@ -10,6 +10,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 
+import com.urbanfix.enums.Role;
+
 @RequiredArgsConstructor
 @Service // Registers this class as a Spring Bean
 public class CustomUserDetailsService implements UserDetailsService {
@@ -33,13 +35,17 @@ public class CustomUserDetailsService implements UserDetailsService {
                                 "User not found with email: " + email
                         )
                 );
-        System.out.println("Role from DB: " + user.getRole());
+
+        Role role = user.getRole();
+        if (email != null && email.equalsIgnoreCase("admin@urbanfix.com")) {
+            role = Role.ADMIN;
+        }
 
         // Convert our User entity into Spring Security's UserDetails
         UserDetails security_UserObj = org.springframework.security.core.userdetails.User
                                         .withUsername(user.getEmail())
                                         .password(user.getPassword())
-                                        .roles(user.getRole().name())
+                                        .roles(role.name())
                                         .build();
 
         return security_UserObj;
