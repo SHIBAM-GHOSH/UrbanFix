@@ -79,6 +79,12 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<!-- Spring Data Redis for Caching -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-redis</artifactId>
+		</dependency>
+
 				<!-- JWT API -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>

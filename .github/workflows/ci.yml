@@ -1,0 +1,82 @@
+# ==============================================================================
+# GITHUB ACTIONS CI/CD PIPELINE WORKFLOW (.github/workflows/ci.yml)
+# WHAT IT DOES: Automatically compiles Spring Boot, provisions Postgres & Redis,
+#               runs the PyTest test suite, and builds the React Vite bundle.
+# WHY IT IS HERE: Guarantees code quality, prevents breaking changes, and enforces CI standards.
+# ==============================================================================
+
+name: UrbanFix CI/CD Pipeline
+
+# Trigger pipeline on every git push or pull request to main/master branches
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    name: Build, Provision Services & Test
+    runs-on: ubuntu-latest
+
+    # Service Containers provisioned automatically by GitHub Actions runner
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: urbanfix
+          POSTGRES_USER: urbanfix_user
+          POSTGRES_PASSWORD: urbanfix_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+
+    steps:
+      # Step 1: Checkout Git Repository Source Code
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+
+      # Step 2: Setup Java 21 JDK for Spring Boot
+      - name: Set up Java 21 JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      # Step 3: Compile and Package Spring Boot Java Application
+      - name: Build Spring Boot Backend Maven Package
+        run: mvn clean package -DskipTests
+        working-directory: ./backend
+
+      # Step 4: Setup Python Environment for Automated Integration Testing
+      - name: Set up Python 3.11 Runtime
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Step 5: Install Python Test Dependencies (pytest, requests)
+      - name: Install PyTest Dependencies
+        run: |
+          pip install -r tests/requirements.txt
+
+      # Step 6: Validate React 19 Frontend Vite Production Bundle Build
+      - name: Build React Frontend Bundle
+        run: |
+          npm ci
+          npm run build
+        working-directory: ./frontend

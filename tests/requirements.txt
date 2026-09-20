@@ -1,0 +1,14 @@
+# ==============================================================================
+# URBANFIX TEST SUITE DEPENDENCIES
+# WHAT IT DOES: Lists the Python packages required to run the automated API test suite.
+# WHY IT IS HERE: Ensures consistent dependency management across local dev and CI/CD pipelines.
+# ==============================================================================
+
+# Core testing framework for executing automated black-box integration tests
+pytest>=8.0.0
+
+# HTTP client library used to fire REST API requests against the Spring Boot server
+requests>=2.31.0
+
+# Pytest plugin for generating formatted HTML test execution reports
+pytest-html>=4.1.1

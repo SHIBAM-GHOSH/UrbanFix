@@ -30,6 +30,11 @@ import org.springframework.web.multipart.MultipartFile;
 import com.urbanfix.exception.InvalidOperationException;
 import com.urbanfix.exception.ResourceNotFoundException;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
+
+
 @Service
 @RequiredArgsConstructor
 public class ComplaintServiceImpl implements ComplaintService {
@@ -51,6 +56,11 @@ public class ComplaintServiceImpl implements ComplaintService {
 
     // Create a new complaint entity, upload optional image, and associate with logged-in user
     @Override
+    @Caching(evict = {
+        @CacheEvict(value = "complaints_all", allEntries = true),
+        @CacheEvict(value = "dashboard_stats", allEntries = true),
+        @CacheEvict(value = "category_analytics", allEntries = true)
+    })
     public ComplaintResponseDTO createComplaint(ComplaintRequestDTO request, MultipartFile image) 
         {
             User currentUser = getCurrentUser();
@@ -91,7 +101,9 @@ public class ComplaintServiceImpl implements ComplaintService {
 
     // Fetch all complaints system-wide with optional status/category filters (Returns simple List)
     //status is an enum and category is a string
+
     @Override
+    @Cacheable(value = "complaints_all", key = "(#status != null ? #status.name() : 'ALL') + '_' + (#category != null ? #category : 'ALL')")
     public List<ComplaintResponseDTO> getAllComplaints(ComplaintStatus status, String category) 
         {
             List<Complaint> complaints = complaintRepository1.findComplaintsFiltered(null,status, category);
@@ -117,6 +129,11 @@ public class ComplaintServiceImpl implements ComplaintService {
 
     // Update title, description, category, or location of a complaint (Creator only)
     @Override
+@Caching(evict = {
+    @CacheEvict(value = "complaints_all", allEntries = true),
+    @CacheEvict(value = "dashboard_stats", allEntries = true),
+    @CacheEvict(value = "category_analytics", allEntries = true)
+})
     public ComplaintResponseDTO updateComplaint(Long complaintId, ComplaintRequestDTO request) 
     {
         Complaint complaint = complaintRepository1.findById(complaintId)
@@ -141,6 +158,11 @@ public class ComplaintServiceImpl implements ComplaintService {
 
     // Delete a complaint by ID (Allowed for original creator or admin)
     @Override
+    @Caching(evict = {
+        @CacheEvict(value = "complaints_all", allEntries = true),
+        @CacheEvict(value = "dashboard_stats", allEntries = true),
+        @CacheEvict(value = "category_analytics", allEntries = true)
+    })
     public void deleteComplaint(Long complaintId) {
         Complaint complaint = complaintRepository1.findById(complaintId)
                 .orElseThrow(() -> new ResourceNotFoundException("Complaint not found with id: " + complaintId));
@@ -177,6 +199,11 @@ public class ComplaintServiceImpl implements ComplaintService {
     // Update status of a complaint (Admin only endpoint)
     @Override
     @PreAuthorize("hasRole('ADMIN')")
+    @Caching(evict = {
+        @CacheEvict(value = "complaints_all", allEntries = true),
+        @CacheEvict(value = "dashboard_stats", allEntries = true),
+        @CacheEvict(value = "category_analytics", allEntries = true)
+    })
     public ComplaintResponseDTO updateComplaintStatus(Long complaintId, UpdateComplaintStatusRequestDTO request) {
         Complaint complaint = complaintRepository1.findById(complaintId)
                 .orElseThrow(() -> new ResourceNotFoundException("Complaint not found with id: " + complaintId));
@@ -189,6 +216,7 @@ public class ComplaintServiceImpl implements ComplaintService {
 
     // Compute high-level dashboard metrics (Total, Pending, In Progress, Resolved counts)
     @Override
+    @Cacheable(value = "dashboard_stats")
     public DashboardStatsResponseDTO getDashboardStatistics() {
         long totalComplaints = complaintRepository1.count();
         long pendingComplaints = complaintRepository1.countByStatus(ComplaintStatus.PENDING);
@@ -204,6 +232,7 @@ public class ComplaintServiceImpl implements ComplaintService {
 
     // Retrieve complaint counts grouped by category for analytics
     @Override
+    @Cacheable(value = "category_analytics")
     public List<CategoryAnalyticsResponseDTO> getCategoryAnalytics() {
         return complaintRepository1.getCategoryAnalytics();
     }
