@@ -1,7 +1,22 @@
 version: '3.8'
 
 services:
-  # 1. Backend Service (Spring Boot 3)
+  # 1. Redis Cache Service
+  redis:
+    image: redis:7-alpine
+    container_name: urbanfix-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 2. Backend Service (Spring Boot 3)
   backend:
     build:
       context: .
@@ -21,8 +36,15 @@ services:
       AWS_REGION: ${AWS_REGION:-ap-south-1}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      # Redis Caching
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SPRING_CACHE_TYPE: redis
+    depends_on:
+      redis:
+        condition: service_healthy
 
-  # 2. Frontend Service (React + Nginx)
+  # 3. Frontend Service (React + Nginx)
   frontend:
     build:
       context: ./frontend
@@ -35,3 +57,6 @@ services:
       - "80:80"
     depends_on:
       - backend
+
+volumes:
+  redis_data:
